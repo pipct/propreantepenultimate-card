@@ -173,28 +173,55 @@ void printHand(const std::vector<Card> &hand) {
         std::cout << "  " << (i + 1) << ": " << card.desc() << "\n";
     }
 }
-void printOptions(const std::vector<CardOption> &options) {
+void printOptions(const std::vector<CardOption> &options, int pickupValue) {
+    if (pickupValue == 0)
+        std::cout << "  0: End turn\n";
+    else
+        std::cout << "  0: End turn (pick up " << pickupValue << " cards)\n";
     for (int i = 0; i < options.size(); ++i) {
         const auto &cardOption = options[i];
         std::cout << "  " << (i + 1) << ": " << cardOption.desc() << "\n";
     }
 }
-int chooseCardOption(const std::vector<CardOption> &options, std::vector<Card> &playedCards) {
+int chooseCardOption(const std::vector<CardOption> &options, std::vector<Card> &playedCards, int pickupValue) {
     if (options.size() == 0)
         return -1;
     printPreviousCards(playedCards);
     std::cout << "  Choose an action:\n";
-    printOptions(options);
+    printOptions(options, pickupValue);
+get_input:
     std::cout << "  > ";
-    int i = 0;
-    scanf("%i", &i);
-    return (i - 1);
+    int result = -1;
+    std::string input;
+    std::cin >> input;
+    for (char c : input) {
+        if (c < '0' || c > '9')
+            break;
+        if (result == -1)
+            result = 0;
+        result = 10 * result + (c - '0');
+    }
+    if (result < 0 || result > options.size()) {
+        std::cout << "Invalid input. Please enter a number between 0 and " << options.size() << ".\n";
+        goto get_input;
+    }
+    return (result - 1);
 }
 
+class AttackValue {
+    int _av, _prevAv;
+public:
+    explicit AttackValue(int av) : _av{av}, _prevAv{0} {}
+    int av() { return _av; }
+    int prevAv() { return _prevAv; }
+    void set(int av) { _prevAv = _av; _av = av; }
+};
+
 struct GameState {
-    std::mt19937 mt{std::random_device{}()};
+    std::mt19937 &mt;
     CardFactory cardFactory{mt};
-    int av = 0, prevAv = 0, mv = 0, currentPlayer = 0;
+    AttackValue av{0};
+    int mv = 0, currentPlayer = 0;
     bool cw = true;
     unsigned long isbCardCount = -1;
     std::vector<std::vector<Card>> players;
@@ -244,11 +271,11 @@ struct GameState {
         isbCardCount = playedCards.size();
     };
     
-    GameState() {
+    GameState(std::mt19937 &mt_, int numPlayers, int numCards) : mt{mt_} {
         // deal cards to players
-        for (int p = 0; p < 2; ++p) {
+        for (int p = 0; p < numPlayers; ++p) {
             std::vector<Card> hand;
-            for (int c = 0; c < 7; ++c) {
+            for (int c = 0; c < numCards; ++c) {
                 hand.push_back(drawCard());
             }
             std::sort(hand.begin(), hand.end());
@@ -258,8 +285,8 @@ struct GameState {
         // initialize
         playedCards.push_back(drawCard());
         switch (topCard().rank) {
-            case 2: av = 2; break;
-            case 5: av = 5; break;
+            case 2: av.set(2); break;
+            case 5: av.set(5); break;
             case 11: cw = false; // fallthrough
             case 10: mv = 1; break;
             case 1: ignoreSquareBrackets(); break;
@@ -305,7 +332,7 @@ struct GameState {
                         ignoreSquareBrackets();
                     } else if (((option.card.rank == 3 && topCard().rank == 7) // C
                                 || (option.card.rank == 7 && topCard().rank == 3))
-                               && prevAv > 0) {
+                               && av.prevAv() > 0) {
                         ignoreSquareBrackets();
                     } else if (previousTopCard() != nullptr // D
                                && option.card.rank >= 2
@@ -337,14 +364,13 @@ struct GameState {
                                    || (c->rank / a.rank == b.rank && c->rank % a.rank == 0)
                                    || (c->rank / b.rank == a.rank && c->rank % b.rank == 0)))
                         ignoreSquareBrackets();
-                    else if (option.card.rank == topCard().rank + 1 // B (last so that
-                             // ignoreSquareBrackets()
-                             // is called if possible)
+                    else if (option.card.rank == topCard().rank + 1
+                             // B (last so that ignoreSquareBrackets() is called if possible)
                              || option.card.rank == topCard().rank - 1
                              || (option.card.rank == 1 && topCard().rank == 13)
                              || (option.card.rank == 1 && topCard().rank == 13)) {
-                        // no ignoreSquareBrackets because suit matches remain
-                        // required for +-1 chains
+                        // no ignoreSquareBrackets() because suit matches remain
+                        // required for +/- 1 chains
                     } else {
                         continue;
                     }
@@ -352,7 +378,7 @@ struct GameState {
                 
                 // validate options
                 if (!option.is_special) {
-                    if (av != 0)
+                    if (av.av() != 0)
                         continue;
                     if (!areSquareBracketsIgnored() && option.card.suit != topCard().suit && option.card.rank != topCard().rank)
                         continue;
@@ -365,7 +391,7 @@ struct GameState {
                             break;
                         case 3:
                         case 7:
-                            if (players[currentPlayer].size() == 1 && av == 0) // last card and no attack
+                            if (players[currentPlayer].size() == 1 && av.av() == 0) // last card and no attack
                                 continue;
                             if (option.secondary_option == 1) {
                                 // 3 to 7 bridge
@@ -389,7 +415,7 @@ struct GameState {
                                 continue;
                             break;
                         case 1:
-                            if (av > 0)
+                            if (av.av() > 0)
                                 continue;
                             if (players[currentPlayer].size() == 1) // last card
                                 continue;
@@ -402,11 +428,11 @@ struct GameState {
             }
         }
         // returns -1 if user didn't choose or if there are no options
-        int selectedOptionIdx = chooseCardOption(cardOptions, playedCards);
+        int selectedOptionIdx = chooseCardOption(cardOptions, playedCards, std::max(1, av.av()));
         if (selectedOptionIdx == -1) {
             if (firstCardThisTurn) {
-                pickUpCards(std::max(1, av));
-                av = 0;
+                pickUpCards(std::max(1, av.av()));
+                av.set(0);
             }
             return;
         }
@@ -419,15 +445,15 @@ struct GameState {
         playCard(card);
         if (selectedOption.is_special) {
             switch (card.rank) {
-                case 5: av += 3;
-                case 2: av += 2; break;
+                case 2: av.set(av.av() + 2); break;
+                case 5: av.set(av.av() + 5); break;
                 case 3:
                 case 7:
-                    av -= card.rank;
-                    if (av < 0) av = 0;
+                    av.set(av.av() - card.rank);
+                    if (av.av() < 0) av.set(0);
                     if (selectedOption.secondary_option == 1)
                         // 3 to 7 bridge
-                        av = 0;
+                        av.set(0);
                     if (players[currentPlayer].size() == 1)
                         // last card
                         mv = 0;
@@ -452,7 +478,9 @@ struct GameState {
 };
 
 int main(int argc, const char *argv[]) {
-    GameState game{};
+    std::mt19937 mt{std::random_device{}()};
+    GameState game{mt, 3, 7};
+    
     while (!game.isGameOver()) {
         game.playTurn();
     }
