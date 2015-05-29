@@ -7,15 +7,14 @@
 #include <algorithm>
 
 struct Card {
-    int suit; // D, H, S, C (1-4)
-    int rank;
+    uint8_t suit; // D, H, S, C (1-4)
+    uint8_t rank;
     Card(decltype(suit) suit_, decltype(rank) rank_) : suit{suit_}, rank{rank_} {}
     Card(std::mt19937 &mt) {
-        decltype(suit) suit_ = std::uniform_int_distribution<>{1, 4}(mt);
-        decltype(rank) rank_ = std::uniform_int_distribution<>{1, 13}(mt);
-        suit = suit_;
-        rank = rank_;
+        suit = std::uniform_int_distribution<>{1, 4}(mt);
+        rank = std::uniform_int_distribution<>{1, 13}(mt);
     }
+    Card() : Card{0, 0} {}
     std::string desc() const {
         std::string res = std::to_string(rank);
         if (rank ==  1) res = "A";
@@ -23,12 +22,11 @@ struct Card {
         if (rank == 12) res = "Q";
         if (rank == 13) res = "K";
         switch (suit) {
-            case 0: res += u8"♦"; break;
-            case 1: res += u8"♥"; break;
-            case 2: res += u8"♠"; break;
-            case 3: res += u8"♣"; break;
+            case 0: return res + u8"♦";
+            case 1: return res + u8"♥";
+            case 2: return res + u8"♠";
+            case 3: default: return res + u8"♣";
         }
-        return res;
     }
     bool operator==(const Card &other) const {
         return suit == other.suit && rank == other.rank;
@@ -36,34 +34,42 @@ struct Card {
     bool operator<(const Card &other) const {
         return rank < other.rank || (rank == other.rank && suit < other.suit);
     }
+    bool potentially_special() const {
+        return rank == 1 || rank == 2 || rank == 3 || rank == 5 || rank == 7 || rank == 10 || rank == 11;
+    }
 };
 
 class CardFactory {
-    std::vector<Card> _remainingCards{};
-    int drawnCards = 0;
+    std::vector<Card> _remainingCards;
     std::mt19937 &_mt;
+    uint8_t drawnCards = 52;
 public:
-    CardFactory(std::mt19937 &mt) : _mt{mt} {}
+    CardFactory(std::mt19937 &mt) : _mt{mt}, _remainingCards(52) {}
     Card getNext() {
-        if (_remainingCards.size() == drawnCards) {
-            for (auto suit = 0; suit <= 3; ++suit) {
-                for (auto rank = 1; rank <= 13; ++rank) {
-                    _remainingCards.emplace_back(suit, rank);
+        if (drawnCards == 52) {
+            int i = 0;
+            for (uint8_t suit = 0; suit <= 3; ++suit) {
+                for (uint8_t rank = 1; rank <= 13; ++rank) {
+                    _remainingCards[i] = Card{suit, rank};
+                    ++i;
                 }
             }
-            std::shuffle(_remainingCards.end() - 52, _remainingCards.end(), _mt);
+            std::shuffle(_remainingCards.begin(), _remainingCards.end(), _mt);
+            drawnCards = 0;
         }
         return _remainingCards[drawnCards++];
     }
 };
 
-
 struct CardOption {
     Card card;
     bool is_special;
-    uint8_t secondary_option; // 0:   default
-    // 1:   use 3/7 jump or skip a turn with 10
-    // 0-3: selected suit from an ace
+    uint8_t secondary_option;
+    // secondary_option = 1:
+    //   - Block everything with a 3/7 jump
+    //   - Skip next player's turn with a 10
+    // secondary_option = 0-3:
+    //   - Selected Ace suit
 
     CardOption(Card card_) : CardOption{card_, false, 0} {}
     CardOption(Card card_,
@@ -90,73 +96,52 @@ struct CardOption {
     }
 
     static std::vector<CardOption> potentialCardOptions(std::vector<Card> cards) {
+        std::sort(cards.begin(), cards.end());
+        std::unique(cards.begin(), cards.end());
         std::vector<CardOption> options;
         for (Card c : cards)
             for (CardOption co : potentialCardOptions(c))
                 options.push_back(co);
-        std::sort(options.begin(), options.end());
-        std::unique(options.begin(), options.end());
         return options;
     }
 
     std::string desc() const {
-        if (!is_special) {
+        if (is_special) {
             switch (card.rank) {
-                case 4:
-                case 6:
-                case 8:
-                case 9:
-                case 12:
-                case 13:
-                    return card.desc();
-                default:
-                    return card.desc() + " (non-special)";
+                case 2:
+                case 5:
+                    return card.desc() + " (attack)";
+                case 11:
+                    return card.desc() + " (change direction)";
+                case 3:
+                case 7:
+                    if (!secondary_option)
+                        return card.desc() + " (block)";
+                    else
+                        return card.desc() + " (block everything)";
+                case 10:
+                    if (!secondary_option)
+                        return card.desc() + " (extra turn)";
+                    else
+                        return card.desc() + " (skip next player's turn)";
+                case 1:
+                    switch (secondary_option) {
+                        case 0: return card.desc() + " (change suit to " + u8"♦" + ")";
+                        case 1: return card.desc() + " (change suit to " + u8"♥" + ")";
+                        case 2: return card.desc() + " (change suit to " + u8"♠" + ")";
+                        case 3: return card.desc() + " (change suit to " + u8"♣" + ")";
+                    }
             }
         }
-        switch (card.rank) {
-            case 2:
-            case 5:
-                if (is_special)
-                    return card.desc() + " (attack)";
-            case 11:
-                if (is_special)
-                    return card.desc() + " (change direction)";
-            case 3:
-            case 7:
-                if (!secondary_option)
-                    return card.desc() + " (block)";
-                else
-                    return card.desc() + " (block everything)";
-            case 10:
-                if (!secondary_option)
-                    return card.desc() + " (extra turn)";
-                else
-                    return card.desc() + " (skip next player's turn)";
-            case 1:
-                switch (secondary_option) {
-                    case 0: return card.desc() + " (change suit to " + u8"♦" + ")";
-                    case 1: return card.desc() + " (change suit to " + u8"♥" + ")";
-                    case 2: return card.desc() + " (change suit to " + u8"♠" + ")";
-                    case 3: return card.desc() + " (change suit to " + u8"♣" + ")";
-                }
+        if (card.potentially_special()) {
+            return card.desc() + " (non-special)";
         }
-        return card.desc(); // should never be called
+
+        return card.desc();
     }
 
     bool operator==(const CardOption &other) const {
         return card == other.card && is_special == other.is_special && secondary_option == other.secondary_option;
-    }
-
-    bool operator<(const CardOption &other) const {
-        if (card < other.card)
-            return true;
-        if (card == other.card) {
-            if (is_special < other.is_special)
-                return true;
-            if (is_special == other.is_special)
-                return secondary_option < other.secondary_option;
-        }
-        return false;
     }
 };
 
@@ -226,7 +211,7 @@ struct GameState {
     unsigned long isbCardCount = -1;
     std::vector<std::vector<Card>> players;
     std::vector<Card> playedCards;
-    
+
     int isGameOver() {
         int i = 1;
         for (auto &hand : players) {
@@ -236,7 +221,7 @@ struct GameState {
         }
         return 0;
     }
-    
+
     Card drawCard() {
         return cardFactory.getNext();
     }
@@ -270,7 +255,7 @@ struct GameState {
     void ignoreSquareBrackets() {
         isbCardCount = playedCards.size();
     };
-    
+
     GameState(std::mt19937 &mt_, int numPlayers, int numCards) : mt{mt_} {
         // deal cards to players
         for (int p = 0; p < numPlayers; ++p) {
@@ -281,7 +266,7 @@ struct GameState {
             std::sort(hand.begin(), hand.end());
             players.push_back(hand);
         }
-        
+
         // initialize
         playedCards.push_back(drawCard());
         switch (topCard().rank) {
@@ -293,7 +278,7 @@ struct GameState {
         }
         printPreviousCards(playedCards);
     }
-    
+
     void playTurn() {
         // step 1
         if (cw)
@@ -306,14 +291,14 @@ struct GameState {
             else
                 currentPlayer -= players.size();
         }
-        
+
         std::cout << "\n\nPlayer " << (currentPlayer + 1) << ":\n";
         printHand(players[currentPlayer]);
-        
+
         // step 2
         if (mv < 1) ++mv;
         if (mv > 1) mv = 1;
-        
+
         // step 3
         auto firstCardThisTurn = true;
     chooseCard:
@@ -321,13 +306,13 @@ struct GameState {
         {
             auto potentialCardOptions = CardOption::potentialCardOptions(players[currentPlayer]);
             for (auto option : potentialCardOptions) {
-                
+
                 if (!firstCardThisTurn) {
                     // test if it can form a valid chain
                     auto a = option.card;
                     auto b = topCard();
                     auto c = previousTopCard(); // ptr (unlike a and b)
-                    
+
                     if (option.card.rank == topCard().rank) { // A
                         ignoreSquareBrackets();
                     } else if (((option.card.rank == 3 && topCard().rank == 7) // C
@@ -345,18 +330,18 @@ struct GameState {
                                    || a.rank + b.rank == c->rank
                                    || a.rank + c->rank == b.rank
                                    || b.rank + c->rank == a.rank
-                                   
+
                                    || a.rank - b.rank == c->rank
                                    || a.rank - c->rank == b.rank
                                    || b.rank - c->rank == a.rank
                                    || b.rank - a.rank == c->rank
                                    || c->rank - a.rank == b.rank
                                    || c->rank - b.rank == a.rank
-                                   
+
                                    || a.rank * b.rank == c->rank
                                    || a.rank * c->rank == b.rank
                                    || b.rank * c->rank == a.rank
-                                   
+
                                    || (a.rank / b.rank == c->rank && a.rank % b.rank == 0)
                                    || (a.rank / c->rank == b.rank && a.rank % c->rank == 0)
                                    || (b.rank / c->rank == a.rank && b.rank % c->rank == 0)
@@ -375,7 +360,7 @@ struct GameState {
                         continue;
                     }
                 }
-                
+
                 // validate options
                 if (!option.is_special) {
                     if (av.av() != 0)
@@ -478,13 +463,19 @@ struct GameState {
 };
 
 int main(int argc, const char *argv[]) {
+//    std::cout << "GameState  : " << sizeof(GameState) << "\n";
+//    std::cout << "Card       : " << sizeof(Card) << "\n";
+//    std::cout << "CardOption : " << sizeof(CardOption) << "\n";
+//    std::cout << "CardFactory: " << sizeof(CardFactory) << "\n";
+//    std::cout << "std::vector: " << sizeof(std::vector<Card>) << "\n";
+
     std::mt19937 mt{std::random_device{}()};
     GameState game{mt, 3, 7};
-    
+
     while (!game.isGameOver()) {
         game.playTurn();
     }
-    
+
     std::cout << "Game won by player " << game.isGameOver() << ".";
     return 0;
 }
