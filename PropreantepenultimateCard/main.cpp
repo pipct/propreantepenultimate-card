@@ -213,7 +213,7 @@ int chooseCardOption(const std::vector<CardOption> &options, std::vector<Card> &
 }
 
 int main(int argc, const char * argv[]) {
-    std::mt19937 mt{/*std::random_device{}()*/};
+    std::mt19937 mt{std::random_device{}()};
     CardFactory cardFactory{mt};
     int av = 0, prevAv = 0, mv = 0, currentPlayer = 0;
     bool cw = true;
