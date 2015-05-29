@@ -330,12 +330,12 @@ int main(int argc, const char * argv[]) {
                                    || a.rank * c->rank == b.rank
                                    || b.rank * c->rank == a.rank
                                    
-                                   || a.rank / b.rank == c->rank
-                                   || a.rank / c->rank == b.rank
-                                   || b.rank / c->rank == a.rank
-                                   || b.rank / a.rank == c->rank
-                                   || c->rank / a.rank == b.rank
-                                   || c->rank / b.rank == a.rank))
+                                   || (a.rank / b.rank == c->rank && a.rank % b.rank == 0)
+                                   || (a.rank / c->rank == b.rank && a.rank % c->rank == 0)
+                                   || (b.rank / c->rank == a.rank && b.rank % c->rank == 0)
+                                   || (b.rank / a.rank == c->rank && b.rank % a.rank == 0)
+                                   || (c->rank / a.rank == b.rank && c->rank % a.rank == 0)
+                                   || (c->rank / b.rank == a.rank && c->rank % b.rank == 0)))
                         ignoreSquareBrackets();
                     else if (option.card.rank == topCard().rank + 1 // B (last so that
                                                                     // ignoreSquareBrackets()
