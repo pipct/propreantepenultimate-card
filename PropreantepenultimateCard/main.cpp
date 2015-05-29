@@ -64,13 +64,13 @@ struct CardOption {
     uint8_t secondary_option; // 0:   default
     // 1:   use 3/7 jump or skip a turn with 10
     // 0-3: selected suit from an ace
-    
+
     CardOption(Card card_) : CardOption{card_, false, 0} {}
     CardOption(Card card_,
                bool is_special_,
                uint8_t secondary_option_) : card{card_}, is_special{is_special_}, secondary_option{secondary_option_} {}
-    
-    
+
+
     static std::vector<CardOption> potentialCardOptions(Card c) {
         std::vector<CardOption> result = { { c } }; // every card can be played normally
         switch (c.rank) {
@@ -88,7 +88,7 @@ struct CardOption {
         }
         return result;
     }
-    
+
     static std::vector<CardOption> potentialCardOptions(std::vector<Card> cards) {
         std::vector<CardOption> options;
         for (Card c : cards)
@@ -98,7 +98,7 @@ struct CardOption {
         std::unique(options.begin(), options.end());
         return options;
     }
-    
+
     std::string desc() const {
         if (!is_special) {
             switch (card.rank) {
@@ -142,11 +142,11 @@ struct CardOption {
         }
         return card.desc(); // should never be called
     }
-    
+
     bool operator==(const CardOption &other) const {
         return card == other.card && is_special == other.is_special && secondary_option == other.secondary_option;
     }
-    
+
     bool operator<(const CardOption &other) const {
         if (card < other.card)
             return true;
@@ -159,16 +159,6 @@ struct CardOption {
         return false;
     }
 };
-
-int isGameOver(std::vector<std::vector<Card>> &players) {
-    int i = 0;
-    for (auto &hand : players) {
-        if (hand.size() == 0)
-            return i;
-        ++i;
-    }
-    return -1;
-}
 
 void printPreviousCards(const std::vector<Card> &playedCards) {
     std::cout << "  Cards currently on the pile (bottom to top):\n";
@@ -201,18 +191,29 @@ int chooseCardOption(const std::vector<CardOption> &options, std::vector<Card> &
     return (i - 1);
 }
 
-int main(int argc, const char *argv[]) {
-    if (argc == 2 && std::string{argv[1]} == "--help") {
-        std::cout << "Usage: ./program [numPlayers] [numCards]\n";
-    }
+struct GameState {
     std::mt19937 mt{std::random_device{}()};
     CardFactory cardFactory{mt};
     int av = 0, prevAv = 0, mv = 0, currentPlayer = 0;
     bool cw = true;
+    unsigned long isbCardCount = -1;
     std::vector<std::vector<Card>> players;
     std::vector<Card> playedCards;
-    auto drawCard = [&cardFactory] { return cardFactory.getNext(); };
-    auto playCard = [&players, &playedCards, &currentPlayer] (Card card) {
+    
+    int isGameOver() {
+        int i = 1;
+        for (auto &hand : players) {
+            if (hand.size() == 0)
+                return i;
+            ++i;
+        }
+        return 0;
+    }
+    
+    Card drawCard() {
+        return cardFactory.getNext();
+    }
+    void playCard(Card card) {
         auto &cardsInHand = players[currentPlayer];
         int idx = 0;
         for (auto c : cardsInHand) {
@@ -223,42 +224,50 @@ int main(int argc, const char *argv[]) {
         cardsInHand.erase(cardsInHand.begin() + idx);
         playedCards.push_back(card);
     };
-    auto pickUpCards = [&drawCard, &players, &currentPlayer] (int num = 1) {
+    void pickUpCards(int num = 1) {
         for (int i = 0; i < num; ++i) {
             auto card = drawCard();
             players[currentPlayer].push_back(card);
             std::cout << "Picked up " << card.desc() << "\n";
         }
     };
-    auto topCard = [&playedCards] { return playedCards.back(); };
-    auto previousTopCard = [&playedCards] { return playedCards.size() >= 2 ? &playedCards[playedCards.size() - 2] : nullptr; };
-    auto isbCardCount = -1ul;
-    auto areSquareBracketsIgnored = [&playedCards, &isbCardCount] { return playedCards.size() == isbCardCount; };
-    auto ignoreSquareBrackets = [&playedCards, &isbCardCount] { isbCardCount = playedCards.size(); };
+    Card topCard() {
+        return playedCards.back();
+    };
+    Card *previousTopCard() {
+        return playedCards.size() >= 2 ? &playedCards[playedCards.size() - 2] : nullptr;
+    };
+    bool areSquareBracketsIgnored() {
+        return playedCards.size() == isbCardCount;
+    };
+    void ignoreSquareBrackets() {
+        isbCardCount = playedCards.size();
+    };
     
-    // deal cards to players
-    for (int p = 0; p < 2; ++p) {
-        std::vector<Card> hand;
-        for (int c = 0; c < 7; ++c) {
-            hand.push_back(drawCard());
+    GameState() {
+        // deal cards to players
+        for (int p = 0; p < 2; ++p) {
+            std::vector<Card> hand;
+            for (int c = 0; c < 7; ++c) {
+                hand.push_back(drawCard());
+            }
+            std::sort(hand.begin(), hand.end());
+            players.push_back(hand);
         }
-        std::sort(hand.begin(), hand.end());
-        players.push_back(hand);
+        
+        // initialize
+        playedCards.push_back(drawCard());
+        switch (topCard().rank) {
+            case 2: av = 2; break;
+            case 5: av = 5; break;
+            case 11: cw = false; // fallthrough
+            case 10: mv = 1; break;
+            case 1: ignoreSquareBrackets(); break;
+        }
+        printPreviousCards(playedCards);
     }
     
-    // initialize
-    playedCards.push_back(drawCard());
-    switch (topCard().rank) {
-        case 2: av = 2; break;
-        case 5: av = 5; break;
-        case 11: cw = false; // fallthrough
-        case 10: mv = 1; break;
-        case 1: ignoreSquareBrackets(); break;
-    }
-    printPreviousCards(playedCards);
-    
-    // start the game
-    while (isGameOver(players) == -1) {
+    void playTurn() {
         // step 1
         if (cw)
             currentPlayer += std::max(mv, 0);
@@ -309,18 +318,18 @@ int main(int argc, const char *argv[]) {
                                    || a.rank + b.rank == c->rank
                                    || a.rank + c->rank == b.rank
                                    || b.rank + c->rank == a.rank
-
+                                   
                                    || a.rank - b.rank == c->rank
                                    || a.rank - c->rank == b.rank
                                    || b.rank - c->rank == a.rank
                                    || b.rank - a.rank == c->rank
                                    || c->rank - a.rank == b.rank
                                    || c->rank - b.rank == a.rank
-
+                                   
                                    || a.rank * b.rank == c->rank
                                    || a.rank * c->rank == b.rank
                                    || b.rank * c->rank == a.rank
-
+                                   
                                    || (a.rank / b.rank == c->rank && a.rank % b.rank == 0)
                                    || (a.rank / c->rank == b.rank && a.rank % c->rank == 0)
                                    || (b.rank / c->rank == a.rank && b.rank % c->rank == 0)
@@ -329,8 +338,8 @@ int main(int argc, const char *argv[]) {
                                    || (c->rank / b.rank == a.rank && c->rank % b.rank == 0)))
                         ignoreSquareBrackets();
                     else if (option.card.rank == topCard().rank + 1 // B (last so that
-                                                                    // ignoreSquareBrackets()
-                                                                    // is called if possible)
+                             // ignoreSquareBrackets()
+                             // is called if possible)
                              || option.card.rank == topCard().rank - 1
                              || (option.card.rank == 1 && topCard().rank == 13)
                              || (option.card.rank == 1 && topCard().rank == 13)) {
@@ -399,7 +408,7 @@ int main(int argc, const char *argv[]) {
                 pickUpCards(std::max(1, av));
                 av = 0;
             }
-            continue;
+            return;
         }
         if (selectedOptionIdx >= cardOptions.size()) {
             std::cout << "  Invalid move, please choose a different option.";
@@ -440,6 +449,14 @@ int main(int argc, const char *argv[]) {
         firstCardThisTurn = false;
         goto chooseCard;
     }
-    std::cout << "Game won by player " << (isGameOver(players) + 1) << ".";
+};
+
+int main(int argc, const char *argv[]) {
+    GameState game{};
+    while (!game.isGameOver()) {
+        game.playTurn();
+    }
+    
+    std::cout << "Game won by player " << game.isGameOver() << ".";
     return 0;
 }

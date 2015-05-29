@@ -1,4 +1,5 @@
 *.out
+PropreantepenultimateCard.xcodeproj/project.xcworkspace/xcshareddata/
 
 #########################
 # .gitignore file for Xcode4 and Xcode5 Source projects
