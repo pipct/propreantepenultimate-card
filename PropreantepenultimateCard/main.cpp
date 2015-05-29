@@ -353,7 +353,7 @@ struct GameState {
                              // B (last so that ignoreSquareBrackets() is called if possible)
                              || option.card.rank == topCard().rank - 1
                              || (option.card.rank == 1 && topCard().rank == 13)
-                             || (option.card.rank == 1 && topCard().rank == 13)) {
+                             || (option.card.rank == 13 && topCard().rank == 1)) {
                         // no ignoreSquareBrackets() because suit matches remain
                         // required for +/- 1 chains
                     } else {
@@ -413,7 +413,7 @@ struct GameState {
             }
         }
         // returns -1 if user didn't choose or if there are no options
-        int selectedOptionIdx = chooseCardOption(cardOptions, playedCards, std::max(1, av.av()));
+        int selectedOptionIdx = chooseCardOption(cardOptions, playedCards, firstCardThisTurn ? std::max(1, av.av()) : 0);
         if (selectedOptionIdx == -1) {
             if (firstCardThisTurn) {
                 pickUpCards(std::max(1, av.av()));
