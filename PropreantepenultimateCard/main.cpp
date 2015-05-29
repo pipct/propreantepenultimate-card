@@ -4,8 +4,7 @@
 #include <string>
 #include <utility>
 #include <random>
-
-using std::move;
+#include <algorithm>
 
 struct Card {
     int suit; // D, H, S, C (1-4)
