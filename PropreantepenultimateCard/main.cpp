@@ -162,7 +162,7 @@ int main(int argc, const char * argv[]) {
         if (card.rank == topCard().rank || card.suit == topCard().suit) {
             playCard(selectedFirstCard);
         } else {
-            std::cout << "Invalid move, please choose a different card.\n";
+            std::cout << "  Invalid move, please choose a different card.\n";
             goto chooseFirstCard;
         }
     }
