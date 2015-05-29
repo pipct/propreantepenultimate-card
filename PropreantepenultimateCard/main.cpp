@@ -17,19 +17,25 @@ struct Card {
         suit = suit_;
         rank = rank_;
     }
-    std::string desc() {
+    std::string desc() const {
         std::string res = std::to_string(rank);
         if (rank ==  1) res = "A";
         if (rank == 11) res = "J";
         if (rank == 12) res = "Q";
         if (rank == 13) res = "K";
         switch (suit) {
-            case 1: res += u8"♦"; break;
-            case 2: res += u8"♥"; break;
-            case 3: res += u8"♠"; break;
-            case 4: res += u8"♣"; break;
+            case 0: res += u8"♦"; break;
+            case 1: res += u8"♥"; break;
+            case 2: res += u8"♠"; break;
+            case 3: res += u8"♣"; break;
         }
         return res;
+    }
+    bool operator==(const Card &other) const {
+        return suit == other.suit && rank == other.rank;
+    }
+    bool operator<(const Card &other) const {
+        return rank < other.rank || (rank == other.rank && suit < other.suit);
     }
 };
 
@@ -41,7 +47,7 @@ public:
     CardFactory(std::mt19937 &mt) : _mt{mt} {}
     Card getNext() {
         if (_remainingCards.size() == drawnCards) {
-            for (auto suit = 1; suit <= 4; ++suit) {
+            for (auto suit = 0; suit <= 3; ++suit) {
                 for (auto rank = 1; rank <= 13; ++rank) {
                     _remainingCards.emplace_back(suit, rank);
                 }
@@ -49,6 +55,120 @@ public:
             std::shuffle(_remainingCards.end() - 52, _remainingCards.end(), _mt);
         }
         return _remainingCards[drawnCards++];
+    }
+};
+
+
+struct CardOption {
+    Card card;
+    bool is_special;
+    uint8_t secondary_option; // 0:   default
+    // 1:   use 3/7 jump or skip a turn with 10
+    // 0-3: selected suit from an ace
+    
+    CardOption(Card card_) : CardOption{card_, false, 0} {}
+    CardOption(Card card_,
+               bool is_special_,
+               uint8_t secondary_option_) : card{card_}, is_special{is_special_}, secondary_option{secondary_option_} {}
+    
+    
+    static std::vector<CardOption> potentialCardOptions(Card c) {
+        std::vector<CardOption> result = { { c } }; // every card can be played normally
+        switch (c.rank) {
+            case 1:
+                result.emplace_back(c, true, 2);
+                result.emplace_back(c, true, 3);
+            case 3:
+            case 7:
+            case 10:
+                result.emplace_back(c, true, 1);
+            case 2:
+            case 5:
+            case 11:
+                result.emplace_back(c, true, 0);
+        }
+        return result;
+    }
+    
+    static std::vector<CardOption> potentialCardOptions(std::vector<Card> cards) {
+        std::vector<CardOption> options;
+        for (Card c : cards)
+            for (CardOption co : potentialCardOptions(c))
+                options.push_back(co);
+        std::sort(options.begin(), options.end());
+        std::unique(options.begin(), options.end());
+        return options;
+    }
+    
+    std::string desc() const {
+        switch (card.rank) {
+            case 4:
+            case 6:
+            case 8:
+            case 9:
+            case 12:
+            case 13:
+                return card.desc();
+            case 2:
+            case 5:
+                if (is_special)
+                    return card.desc() + " (attack)";
+                else
+                    return card.desc() + " (non-special)";
+            case 11:
+                if (is_special)
+                    return card.desc() + " (change direction)";
+                else
+                    return card.desc() + " (non-special)";
+            case 3:
+            case 7:
+                if (!is_special)
+                    return card.desc() + " (non-special)";
+                else {
+                    if (!secondary_option)
+                        return card.desc() + " (block)";
+                    else
+                        return card.desc() + " (block everything)";
+                }
+            case 10:
+                if (!is_special)
+                    return card.desc() + " (non-special)";
+                else {
+                    if (!secondary_option)
+                        return card.desc() + " (extra turn)";
+                    else
+                        return card.desc() + " (skip next player's turn)";
+                }
+            case 1:
+                if (!is_special)
+                    return card.desc() + " (non-special)";
+                else {
+                    switch (secondary_option) {
+                        case 0: return card.desc() + " (change suit to " + u8"♦" + ")";
+                        case 1: return card.desc() + " (change suit to " + u8"♥" + ")";
+                        case 2: return card.desc() + " (change suit to " + u8"♠" + ")";
+                        case 3: return card.desc() + " (change suit to " + u8"♣" + ")";
+                    }
+                }
+            default:
+                return std::string{"Error, unknown rank "} + std::to_string(card.rank);
+        }
+    }
+    
+    bool operator==(const CardOption &other) const {
+        return card == other.card && is_special == other.is_special && secondary_option == other.secondary_option;
+    }
+    
+    bool operator<(const CardOption &other) const {
+        if (card < other.card)
+            return true;
+        if (card == other.card) {
+            if (is_special < other.is_special)
+                return true;
+            if (is_special == other.is_special)
+                return secondary_option < other.secondary_option;
+        }
+        return false;
     }
 };
 
@@ -62,23 +182,31 @@ int isGameOver(std::vector<std::vector<Card>> &players) {
     return -1;
 }
 
-void printPreviousCards(std::vector<Card> &playedCards) {
+void printPreviousCards(const std::vector<Card> &playedCards) {
     std::cout << "  Cards currently on the pile (bottom to top):\n";
     for (int i = std::max(0, static_cast<int>(playedCards.size()) - 3); i < playedCards.size(); ++i) {
-        Card &card = playedCards[i];
+        const auto &card = playedCards[i];
         std::cout << "  " << (i + 1) << ": " << card.desc() << "\n";
     }
 }
-void printHand(std::vector<Card> &hand) {
+void printHand(const std::vector<Card> &hand) {
     for (int i = 0; i < hand.size(); ++i) {
-        Card &card = hand[i];
+        const auto &card = hand[i];
         std::cout << "  " << (i + 1) << ": " << card.desc() << "\n";
     }
 }
-int chooseCard(std::vector<Card> &hand, std::vector<Card> &playedCards) {
+void printOptions(const std::vector<CardOption> &options) {
+    for (int i = 0; i < options.size(); ++i) {
+        const auto &cardOption = options[i];
+        std::cout << "  " << (i + 1) << ": " << cardOption.desc() << "\n";
+    }
+}
+int chooseCardOption(const std::vector<CardOption> &options, std::vector<Card> &playedCards) {
+    if (options.size() == 0)
+        return -1;
     printPreviousCards(playedCards);
     std::cout << "  Choose a card:\n";
-    printHand(hand);
+    printOptions(options);
     std::cout << "  > ";
     int i = 0;
     scanf("%i", &i);
@@ -93,10 +221,10 @@ int main(int argc, const char * argv[]) {
     std::vector<std::vector<Card>> players;
     std::vector<Card> playedCards;
     auto drawCard = [&cardFactory] { return cardFactory.getNext(); };
-    auto playCard = [&players, &playedCards, &currentPlayer] (int cardIdx) {
-        auto card = players[currentPlayer][cardIdx];
-        players[currentPlayer].erase(players[currentPlayer].begin() + cardIdx);
-        playedCards.push_back(card);
+    auto playCard = [&players, &playedCards, &currentPlayer] (Card c) {
+        auto &cardsInHand = players[currentPlayer];
+        std::remove(cardsInHand.begin(), cardsInHand.end(), c);
+        playedCards.push_back(c);
     };
     auto pickUpCards = [&drawCard, &players, &currentPlayer] (int num = 1) {
         for (int i = 0; i < num; ++i) {
@@ -108,7 +236,7 @@ int main(int argc, const char * argv[]) {
     auto topCard = [&playedCards] { return playedCards.back(); };
     //auto previousTopCard = [&playedCards] { return playedCards.size() >= 2 ? &playedCards[playedCards.size() - 2] : nullptr; };
     auto isbCardCount = -1ul;
-    //auto areSquareBracketsIgnored = [&playedCards, &isbCardCount] { return playedCards.size() == isbCardCount; };
+    auto areSquareBracketsIgnored = [&playedCards, &isbCardCount] { return playedCards.size() == isbCardCount; };
     auto ignoreSquareBrackets = [&playedCards, &isbCardCount] { isbCardCount = playedCards.size(); };
     
     // deal cards to players
@@ -145,25 +273,53 @@ int main(int argc, const char * argv[]) {
         }
         
         std::cout << "\n\nPlayer " << (currentPlayer + 1) << ":\n";
+        printHand(players[currentPlayer]);
         
         // step 2
         if (mv < 1) ++mv;
         if (mv > 1) mv = 1;
         
         // step 3
-    chooseFirstCard:
-        int selectedFirstCard = chooseCard(players[currentPlayer], playedCards);
-        if (selectedFirstCard == -1) {
-            pickUpCards(std::max(1, av));
-            av = 0;
+        auto firstCardThisTurn = true;
+    chooseCard:
+        auto cardOptions = std::vector<CardOption>{};
+        {
+            auto potentialCardOptions = CardOption::potentialCardOptions(players[currentPlayer]);
+            for (auto option : potentialCardOptions) {
+                // validate options
+                if (!option.is_special) {
+                    if (av == 0) {
+                        if (areSquareBracketsIgnored() || option.card.suit == topCard().suit || option.card.suit == topCard().rank) {
+                            cardOptions.push_back(option);
+                        }
+                    }
+                }
+//                switch (option.card.rank) {
+//                    case 2:
+//                    case 5:
+//                        if (players[currentPlayer].size() == 1) // not playable as last card
+//                            continue;
+//                }
+            }
+        }
+        // returns -1 if user didn't choose or if there are no options
+        int selectedOptionIdx = chooseCardOption(cardOptions, playedCards);
+        if (selectedOptionIdx == -1) {
+            if (firstCardThisTurn) {
+                pickUpCards(std::max(1, av));
+                av = 0;
+            }
             continue;
         }
-        auto card = players[currentPlayer][selectedFirstCard];
+        auto selectedOption = cardOptions[selectedOptionIdx];
+        auto card = selectedOption.card;
         if (card.rank == topCard().rank || card.suit == topCard().suit) {
-            playCard(selectedFirstCard);
+            playCard(card);
+            firstCardThisTurn = false;
+            goto chooseCard;
         } else {
             std::cout << "  Invalid move, please choose a different card.\n";
-            goto chooseFirstCard;
+            goto chooseCard;
         }
     }
     std::cout << "Game won by player " << (isGameOver(players) + 1) << ".";
