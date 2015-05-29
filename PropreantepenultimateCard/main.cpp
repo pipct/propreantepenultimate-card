@@ -216,7 +216,7 @@ int chooseCardOption(const std::vector<CardOption> &options, std::vector<Card> &
 int main(int argc, const char * argv[]) {
     std::mt19937 mt{/*std::random_device{}()*/};
     CardFactory cardFactory{mt};
-    int av = 0, mv = 0, currentPlayer = 0;
+    int av = 0, prevAv = 0, mv = 0, currentPlayer = 0;
     bool cw = true;
     std::vector<std::vector<Card>> players;
     std::vector<Card> playedCards;
@@ -240,7 +240,7 @@ int main(int argc, const char * argv[]) {
         }
     };
     auto topCard = [&playedCards] { return playedCards.back(); };
-    //auto previousTopCard = [&playedCards] { return playedCards.size() >= 2 ? &playedCards[playedCards.size() - 2] : nullptr; };
+    auto previousTopCard = [&playedCards] { return playedCards.size() >= 2 ? &playedCards[playedCards.size() - 2] : nullptr; };
     auto isbCardCount = -1ul;
     auto areSquareBracketsIgnored = [&playedCards, &isbCardCount] { return playedCards.size() == isbCardCount; };
     auto ignoreSquareBrackets = [&playedCards, &isbCardCount] { isbCardCount = playedCards.size(); };
@@ -294,6 +294,62 @@ int main(int argc, const char * argv[]) {
         {
             auto potentialCardOptions = CardOption::potentialCardOptions(players[currentPlayer]);
             for (auto option : potentialCardOptions) {
+                
+                if (!firstCardThisTurn) {
+                    // test if it can form a valid chain
+                    auto a = option.card;
+                    auto b = topCard();
+                    auto c = previousTopCard(); // ptr (unlike a and b)
+                    
+                    if (option.card.rank == topCard().rank) { // A
+                        ignoreSquareBrackets();
+                    } else if (((option.card.rank == 3 && topCard().rank == 7) // C
+                                || (option.card.rank == 7 && topCard().rank == 3))
+                               && prevAv > 0) {
+                        ignoreSquareBrackets();
+                    } else if (previousTopCard() != nullptr // D
+                               && option.card.rank >= 2
+                               && option.card.rank <= 10
+                               && topCard().rank >= 2
+                               && topCard().rank <= 10
+                               && previousTopCard()->rank >= 2
+                               && previousTopCard()->rank <= 10
+                               && (0
+                                   || a.rank + b.rank == c->rank
+                                   || a.rank + c->rank == b.rank
+                                   || b.rank + c->rank == a.rank
+                                   
+                                   || a.rank - b.rank == c->rank
+                                   || a.rank - c->rank == b.rank
+                                   || b.rank - c->rank == a.rank
+                                   || b.rank - a.rank == c->rank
+                                   || c->rank - a.rank == b.rank
+                                   || c->rank - b.rank == a.rank
+                                   
+                                   || a.rank * b.rank == c->rank
+                                   || a.rank * c->rank == b.rank
+                                   || b.rank * c->rank == a.rank
+                                   
+                                   || a.rank / b.rank == c->rank
+                                   || a.rank / c->rank == b.rank
+                                   || b.rank / c->rank == a.rank
+                                   || b.rank / a.rank == c->rank
+                                   || c->rank / a.rank == b.rank
+                                   || c->rank / b.rank == a.rank))
+                        ignoreSquareBrackets();
+                    else if (option.card.rank == topCard().rank + 1 // B (last so that
+                                                                    // ignoreSquareBrackets()
+                                                                    // is called if possible)
+                             || option.card.rank == topCard().rank - 1
+                             || (option.card.rank == 1 && topCard().rank == 13)
+                             || (option.card.rank == 1 && topCard().rank == 13)) {
+                        // no ignoreSquareBrackets because suit matches remain
+                        // required for +-1 chains
+                    } else {
+                        continue;
+                    }
+                }
+                
                 // validate options
                 if (!option.is_special) {
                     if (av != 0)
