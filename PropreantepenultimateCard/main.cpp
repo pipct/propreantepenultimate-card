@@ -214,7 +214,7 @@ int chooseCardOption(const std::vector<CardOption> &options, std::vector<Card> &
 }
 
 int main(int argc, const char * argv[]) {
-    std::mt19937 mt{std::random_device{}()};
+    std::mt19937 mt{/*std::random_device{}()*/};
     CardFactory cardFactory{mt};
     int av = 0, mv = 0, currentPlayer = 0;
     bool cw = true;
@@ -251,6 +251,7 @@ int main(int argc, const char * argv[]) {
         for (int c = 0; c < 7; ++c) {
             hand.push_back(drawCard());
         }
+        std::sort(hand.begin(), hand.end());
         players.push_back(hand);
     }
     
@@ -299,7 +300,6 @@ int main(int argc, const char * argv[]) {
                         continue;
                     if (!areSquareBracketsIgnored() && (option.card.suit != topCard().suit && option.card.rank != topCard().rank))
                         continue;
-                    cardOptions.push_back(option);
                 } else {
                     switch (option.card.rank) {
                         case 2:
@@ -307,11 +307,25 @@ int main(int argc, const char * argv[]) {
                             if (players[currentPlayer].size() == 1) // last card
                                 continue;
                             break;
+                        case 3:
+                        case 7:
+                            if (players[currentPlayer].size() == 1 && av == 0) // last card and no attack
+                                continue;
+                            if (option.secondary_option == 1) {
+                                // 3 to 7 bridge
+                                if (option.card.rank == 3 && topCard().rank != 7)
+                                    continue;
+                                if (option.card.rank == 7 && topCard().rank != 3)
+                                    continue;
+                                if (firstCardThisTurn)
+                                    continue; // bridge must be played on one turn
+                            }
+                            break;
                         default:
                             continue;
                     }
-                    cardOptions.push_back(option);
                 }
+                cardOptions.push_back(option);
             }
         }
         // returns -1 if user didn't choose or if there are no options
@@ -332,11 +346,18 @@ int main(int argc, const char * argv[]) {
         playCard(card);
         if (selectedOption.is_special) {
             switch (card.rank) {
-                case 2:
-                    av += 2;
-                    break;
-                case 5:
-                    av += 5;
+                case 5: av += 3;
+                case 2: av += 2; break;
+                case 3:
+                case 7:
+                    av -= card.rank;
+                    if (av < 0) av = 0;
+                    if (selectedOption.secondary_option == 1)
+                        // 3 to 7 bridge
+                        av = 0;
+                    if (players[currentPlayer].size() == 1)
+                        // last card
+                        mv = 0;
                     break;
             }
         }
