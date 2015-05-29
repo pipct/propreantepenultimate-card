@@ -298,7 +298,7 @@ int main(int argc, const char * argv[]) {
                 if (!option.is_special) {
                     if (av != 0)
                         continue;
-                    if (!areSquareBracketsIgnored() && (option.card.suit != topCard().suit && option.card.rank != topCard().rank))
+                    if (!areSquareBracketsIgnored() && option.card.suit != topCard().suit && option.card.rank != topCard().rank)
                         continue;
                 } else {
                     switch (option.card.rank) {
@@ -320,6 +320,23 @@ int main(int argc, const char * argv[]) {
                                 if (firstCardThisTurn)
                                     continue; // bridge must be played on one turn
                             }
+                            break;
+                        case 10:
+                            if (!areSquareBracketsIgnored() && option.card.suit != topCard().suit && option.card.rank != topCard().rank)
+                                continue;
+                            if (players[currentPlayer].size() == 1) // last card
+                                continue;
+                            // rules apply regardless of option.secondary_option
+                            break;
+                        case 11:
+                            if (players[currentPlayer].size() == 1) // last card
+                                continue;
+                            break;
+                        case 1:
+                            if (av > 0)
+                                continue;
+                            if (players[currentPlayer].size() == 1) // last card
+                                continue;
                             break;
                         default:
                             continue;
@@ -358,6 +375,18 @@ int main(int argc, const char * argv[]) {
                     if (players[currentPlayer].size() == 1)
                         // last card
                         mv = 0;
+                    break;
+                case 10:
+                    if (selectedOption.secondary_option)
+                        ++mv;
+                    else
+                        --mv;
+                    break;
+                case 11:
+                    cw = !cw;
+                    break;
+                case 1:
+                    playedCards.back().suit = selectedOption.secondary_option;
                     break;
             }
         }
