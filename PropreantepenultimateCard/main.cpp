@@ -204,6 +204,8 @@ void printOptions(const std::vector<CardOption> &options) {
 int chooseCardOption(const std::vector<CardOption> &options, std::vector<Card> &playedCards) {
     if (options.size() == 0)
         return -1;
+    if (options.size() == 1)
+        return 0;
     printPreviousCards(playedCards);
     std::cout << "  Choose a card:\n";
     printOptions(options);
@@ -257,6 +259,7 @@ int main(int argc, const char * argv[]) {
         case 10: mv = 1; break;
         case 1: ignoreSquareBrackets(); break;
     }
+    printPreviousCards(playedCards);
     
     // start the game
     while (isGameOver(players) == -1) {
@@ -289,7 +292,7 @@ int main(int argc, const char * argv[]) {
                 // validate options
                 if (!option.is_special) {
                     if (av == 0) {
-                        if (areSquareBracketsIgnored() || option.card.suit == topCard().suit || option.card.suit == topCard().rank) {
+                        if (areSquareBracketsIgnored() || option.card.suit == topCard().suit || option.card.rank == topCard().rank) {
                             cardOptions.push_back(option);
                         }
                     }
