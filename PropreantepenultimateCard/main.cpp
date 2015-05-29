@@ -205,7 +205,7 @@ int chooseCardOption(const std::vector<CardOption> &options, std::vector<Card> &
     if (options.size() == 0)
         return -1;
     printPreviousCards(playedCards);
-    std::cout << "  Choose a card:\n";
+    std::cout << "  Choose an action:\n";
     printOptions(options);
     std::cout << "  > ";
     int i = 0;
@@ -318,18 +318,18 @@ int main(int argc, const char * argv[]) {
                                    || a.rank + b.rank == c->rank
                                    || a.rank + c->rank == b.rank
                                    || b.rank + c->rank == a.rank
-                                   
+
                                    || a.rank - b.rank == c->rank
                                    || a.rank - c->rank == b.rank
                                    || b.rank - c->rank == a.rank
                                    || b.rank - a.rank == c->rank
                                    || c->rank - a.rank == b.rank
                                    || c->rank - b.rank == a.rank
-                                   
+
                                    || a.rank * b.rank == c->rank
                                    || a.rank * c->rank == b.rank
                                    || b.rank * c->rank == a.rank
-                                   
+
                                    || (a.rank / b.rank == c->rank && a.rank % b.rank == 0)
                                    || (a.rank / c->rank == b.rank && a.rank % c->rank == 0)
                                    || (b.rank / c->rank == a.rank && b.rank % c->rank == 0)
