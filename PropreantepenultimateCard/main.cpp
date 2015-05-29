@@ -100,58 +100,47 @@ struct CardOption {
     }
     
     std::string desc() const {
+        if (!is_special) {
+            switch (card.rank) {
+                case 4:
+                case 6:
+                case 8:
+                case 9:
+                case 12:
+                case 13:
+                    return card.desc();
+                default:
+                    return card.desc() + " (non-special)";
+            }
+        }
         switch (card.rank) {
-            case 4:
-            case 6:
-            case 8:
-            case 9:
-            case 12:
-            case 13:
-                return card.desc();
             case 2:
             case 5:
                 if (is_special)
                     return card.desc() + " (attack)";
-                else
-                    return card.desc() + " (non-special)";
             case 11:
                 if (is_special)
                     return card.desc() + " (change direction)";
-                else
-                    return card.desc() + " (non-special)";
             case 3:
             case 7:
-                if (!is_special)
-                    return card.desc() + " (non-special)";
-                else {
-                    if (!secondary_option)
-                        return card.desc() + " (block)";
-                    else
-                        return card.desc() + " (block everything)";
-                }
+                if (!secondary_option)
+                    return card.desc() + " (block)";
+                else
+                    return card.desc() + " (block everything)";
             case 10:
-                if (!is_special)
-                    return card.desc() + " (non-special)";
-                else {
-                    if (!secondary_option)
-                        return card.desc() + " (extra turn)";
-                    else
-                        return card.desc() + " (skip next player's turn)";
-                }
+                if (!secondary_option)
+                    return card.desc() + " (extra turn)";
+                else
+                    return card.desc() + " (skip next player's turn)";
             case 1:
-                if (!is_special)
-                    return card.desc() + " (non-special)";
-                else {
-                    switch (secondary_option) {
-                        case 0: return card.desc() + " (change suit to " + u8"♦" + ")";
-                        case 1: return card.desc() + " (change suit to " + u8"♥" + ")";
-                        case 2: return card.desc() + " (change suit to " + u8"♠" + ")";
-                        case 3: return card.desc() + " (change suit to " + u8"♣" + ")";
-                    }
+                switch (secondary_option) {
+                    case 0: return card.desc() + " (change suit to " + u8"♦" + ")";
+                    case 1: return card.desc() + " (change suit to " + u8"♥" + ")";
+                    case 2: return card.desc() + " (change suit to " + u8"♠" + ")";
+                    case 3: return card.desc() + " (change suit to " + u8"♣" + ")";
                 }
-            default:
-                return std::string{"Error, unknown rank "} + std::to_string(card.rank);
         }
+        return card.desc(); // should never be called
     }
     
     bool operator==(const CardOption &other) const {
@@ -212,7 +201,10 @@ int chooseCardOption(const std::vector<CardOption> &options, std::vector<Card> &
     return (i - 1);
 }
 
-int main(int argc, const char * argv[]) {
+int main(int argc, const char *argv[]) {
+    if (argc == 2 && std::string{argv[1]} == "--help") {
+        std::cout << "Usage: ./program [numPlayers] [numCards]\n";
+    }
     std::mt19937 mt{std::random_device{}()};
     CardFactory cardFactory{mt};
     int av = 0, prevAv = 0, mv = 0, currentPlayer = 0;
