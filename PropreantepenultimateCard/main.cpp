@@ -8,14 +8,17 @@
 #include <stdint.h>
 #include <sstream>
 
-//#define DIAMOND_STR "\xE2\x99\xA6"
-//#define HEART_STR "\xE2\x99\xA5"
-//#define SPADE_STR "\xE2\x99\xA0"
-//#define CLUB_STR "\xE2\x99\xA3"
-#define DIAMOND_STR "D"
-#define HEART_STR "H"
-#define SPADE_STR "S"
-#define CLUB_STR "C"
+#ifdef _WIN32
+    #define DIAMOND_STR "D"
+    #define HEART_STR "H"
+    #define SPADE_STR "S"
+    #define CLUB_STR "C"
+#else
+    #define DIAMOND_STR "\xE2\x99\xA6"
+    #define HEART_STR "\xE2\x99\xA5"
+    #define SPADE_STR "\xE2\x99\xA0"
+    #define CLUB_STR "\xE2\x99\xA3"
+#endif
 
 struct Card {
     uint8_t suit; // D, H, S, C (1-4)
@@ -48,7 +51,8 @@ struct Card {
         return rank < other.rank || (rank == other.rank && suit < other.suit);
     }
     bool potentially_special() const {
-        return rank == 1 || rank == 2 || rank == 3 || rank == 5 || rank == 7 || rank == 10 || rank == 11;
+        return rank == 1 || rank == 2 || rank == 3
+            || rank == 5 || rank == 7 || rank == 10 || rank == 11;
     }
 };
 
@@ -57,7 +61,8 @@ class CardFactory {
     std::mt19937 &_mt;
     uint8_t drawnCards;
 public:
-    CardFactory(std::mt19937 &mt) : _mt(mt), _remainingCards(52), drawnCards(52) {}
+    CardFactory(std::mt19937 &mt)
+      : _mt(mt), _remainingCards(52), drawnCards(52) {}
     Card getNext() {
         if (drawnCards == 52) {
             int i = 0;
@@ -84,10 +89,14 @@ struct CardOption {
     // secondary_option = 0-3:
     //   - Selected Ace suit
 
-    CardOption(Card card_) : card(card_), is_special(false), secondary_option(0) {}
+    CardOption(Card card_)
+      : card(card_), is_special(false), secondary_option(0) {}
     CardOption(Card card_,
                bool is_special_,
-               uint8_t secondary_option_) : card(card_), is_special(is_special_), secondary_option(secondary_option_) {}
+               uint8_t secondary_option_)
+      : card(card_),
+        is_special(is_special_),
+        secondary_option(secondary_option_) {}
 
 
     static std::vector<CardOption> potentialCardOptions(Card c) {
@@ -110,7 +119,8 @@ struct CardOption {
         return result;
     }
 
-    static std::vector<CardOption> potentialCardOptions(std::vector<Card> cards) {
+    static std::vector<CardOption> potentialCardOptions(
+      std::vector<Card> cards) {
         std::sort(cards.begin(), cards.end());
         std::unique(cards.begin(), cards.end());
         std::vector<CardOption> options;
@@ -212,29 +222,26 @@ get_input:
     return (result - 1);
 }
 
-class AttackValue {
-    int _av, _prevAv;
-public:
-    explicit AttackValue(int av) : _av(av), _prevAv(0) {}
-    int av() const { return _av; }
-    int prevAv() const { return _prevAv; }
-    void set(int av) { _prevAv = _av; _av = av; }
-};
-
 struct GameState {
     std::mt19937 &mt;
-    CardFactory cardFactory;
-    AttackValue av;
-    int mv, currentPlayer;
+    CardFactory cardFactory{mt};
+    int av, mv, currentPlayer;
     bool cw;
+    int turnCount;
     unsigned long isbCardCount;
+    int allowChain3And7TurnCount;
+    int preventGameOverTurnCount;
     std::vector<std::vector<Card>> players;
     std::vector<Card> playedCards;
 
     int isGameOver() {
+        if (isGameOverPreventedThisTurn())
+            return 0;
         for (int i = 0; i < players.size(); ++i) {
-            if (players[i].size() == 0)
-                return i + 1;
+            auto hand = players[i];
+            if (hand.size() == 0)
+                return i;
+            ++i;
         }
         return 0;
     }
@@ -273,8 +280,29 @@ struct GameState {
     void ignoreSquareBrackets() {
         isbCardCount = playedCards.size();
     };
+    bool are3And7ChainsAllowed() {
+        return turnCount == allowChain3And7TurnCount;
+    };
+    void allow3And7Chain() {
+        allowChain3And7TurnCount = turnCount;
+    };
+    bool isGameOverPreventedThisTurn() {
+        return turnCount == preventGameOverTurnCount;
+    };
+    void preventGameOver() {
+        preventGameOverTurnCount = turnCount;
+    };
 
-	GameState(std::mt19937 &mt_, int numPlayers, int numCards) : mt(mt_), av(0), cardFactory(mt), mv(0), currentPlayer(0), cw(true), isbCardCount(-1) {
+	GameState(std::mt19937 &mt_, int numPlayers, int numCards)
+    : mt(mt_),
+      av(0),
+      cardFactory(mt),
+      mv(0),
+      currentPlayer(0),
+      cw(true),
+      isbCardCount(-1),
+      allowChain3And7TurnCount(-1),
+      preventGameOverTurnCount(-1) {
         // deal cards to players
         for (int p = 0; p < numPlayers; ++p) {
             std::vector<Card> hand;
@@ -288,8 +316,8 @@ struct GameState {
         // initialize
         playedCards.push_back(drawCard());
         switch (topCard().rank) {
-            case 2: av.set(2); break;
-            case 5: av.set(5); break;
+            case 2: av = 2; break;
+            case 5: av = 5; break;
             case 11: cw = false; // fallthrough
             case 10: mv = 1; break;
             case 1: ignoreSquareBrackets(); break;
@@ -298,6 +326,8 @@ struct GameState {
     }
 
     void playTurn() {
+        ++turnCount;
+
         // step 1
         if (cw)
             currentPlayer += std::max(mv, 0);
@@ -336,7 +366,7 @@ struct GameState {
                         ignoreSquareBrackets();
                     } else if (((option.card.rank == 3 && topCard().rank == 7) // C
                                 || (option.card.rank == 7 && topCard().rank == 3))
-                               && av.prevAv() > 0) {
+                               && are3And7ChainsAllowed()) {
                         ignoreSquareBrackets();
                     } else if (previousTopCard() != nullptr // D
                                && option.card.rank >= 2
@@ -382,7 +412,7 @@ struct GameState {
 
                 // validate options
                 if (!option.is_special) {
-                    if (av.av() != 0)
+                    if (av != 0)
                         continue;
                     if (!areSquareBracketsIgnored() && option.card.suit != topCard().suit && option.card.rank != topCard().rank)
                         continue;
@@ -395,7 +425,7 @@ struct GameState {
                             break;
                         case 3:
                         case 7:
-                            if (players[currentPlayer].size() == 1 && av.av() == 0) // last card and no attack
+                            if (players[currentPlayer].size() == 1 && av == 0) // last card and no attack
                                 continue;
                             if (option.secondary_option == 1) {
                                 // 3 to 7 bridge
@@ -419,7 +449,7 @@ struct GameState {
                                 continue;
                             break;
                         case 1:
-                            if (av.av() > 0)
+                            if (av > 0)
                                 continue;
                             if (players[currentPlayer].size() == 1) // last card
                                 continue;
@@ -432,11 +462,11 @@ struct GameState {
             }
         }
         // returns -1 if user didn't choose or if there are no options
-        int selectedOptionIdx = chooseCardOption(cardOptions, playedCards, firstCardThisTurn ? std::max(1, av.av()) : 0);
+        int selectedOptionIdx = chooseCardOption(cardOptions, playedCards, firstCardThisTurn ? std::max(1, av) : 0);
         if (selectedOptionIdx == -1) {
             if (firstCardThisTurn) {
-                pickUpCards(std::max(1, av.av()));
-                av.set(0);
+                pickUpCards(std::max(1, av));
+                av = 0;
             }
             return;
         }
@@ -449,18 +479,22 @@ struct GameState {
         playCard(card);
         if (selectedOption.is_special) {
             switch (card.rank) {
-                case 2: av.set(av.av() + 2); break;
-                case 5: av.set(av.av() + 5); break;
+                case 2: av += 2; break;
+                case 5: av += 5; break;
                 case 3:
                 case 7:
-                    av.set(av.av() - card.rank);
-                    if (av.av() < 0) av.set(0);
+                    if (av > 0)
+                        allow3And7Chain();
+                    av -= card.rank;
+                    if (av < 0) av = 0;
                     if (selectedOption.secondary_option == 1)
                         // 3 to 7 bridge
-                        av.set(0);
-                    if (players[currentPlayer].size() == 1)
+                        av = 0;
+                    if (players[currentPlayer].size() == 1) {
                         // last card
                         mv = 0;
+                        preventGameOver();
+                    }
                     break;
                 case 10:
                     if (selectedOption.secondary_option)
@@ -482,19 +516,18 @@ struct GameState {
 };
 
 int main(int argc, const char *argv[]) {
-//    std::cout << "GameState  : " << sizeof(GameState) << "\n";
-//    std::cout << "Card       : " << sizeof(Card) << "\n";
-//    std::cout << "CardOption : " << sizeof(CardOption) << "\n";
-//    std::cout << "CardFactory: " << sizeof(CardFactory) << "\n";
-//    std::cout << "std::vector: " << sizeof(std::vector<Card>) << "\n";
 	std::random_device rd;
     std::mt19937 mt(rd());
-    GameState game(mt, 2, 7);
+    GameState game(mt, 3, 7);
 
     while (!game.isGameOver()) {
         game.playTurn();
     }
 
     std::cout << "Game won by player " << game.isGameOver() << ".";
+#ifdef _WIN32
+    std::string s;
+    std::cin >> s;
+#endif
     return 0;
 }
