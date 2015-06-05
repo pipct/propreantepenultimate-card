@@ -153,11 +153,12 @@ struct CardOption {
                     else
                         return card.desc() + " (skip next player's turn)";
                 case 1:
+                    std::string s = card.desc() + " (change suit to ";
                     switch (secondary_option) {
-                        case 0: return card.desc() + " (change suit to " + DIAMOND_STR + ")";
-                        case 1: return card.desc() + " (change suit to " + HEART_STR + ")";
-                        case 2: return card.desc() + " (change suit to " + SPADE_STR + ")";
-                        case 3: return card.desc() + " (change suit to " + CLUB_STR + ")";
+                        case 0: return s + DIAMOND_STR ")";
+                        case 1: return s + HEART_STR ")";
+                        case 2: return s + SPADE_STR ")";
+                        case 3: return s + CLUB_STR ")";
                     }
             }
         }
@@ -169,7 +170,9 @@ struct CardOption {
     }
 
     bool operator==(const CardOption &other) const {
-        return card == other.card && is_special == other.is_special && secondary_option == other.secondary_option;
+        return card == other.card
+            && is_special == other.is_special
+            && secondary_option == other.secondary_option;
     }
 };
 
