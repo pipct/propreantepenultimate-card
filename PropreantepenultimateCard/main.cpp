@@ -5,27 +5,40 @@
 #include <utility>
 #include <random>
 #include <algorithm>
+#include <stdint.h>
+#include <sstream>
+
+//#define DIAMOND_STR "\xE2\x99\xA6"
+//#define HEART_STR "\xE2\x99\xA5"
+//#define SPADE_STR "\xE2\x99\xA0"
+//#define CLUB_STR "\xE2\x99\xA3"
+#define DIAMOND_STR "D"
+#define HEART_STR "H"
+#define SPADE_STR "S"
+#define CLUB_STR "C"
 
 struct Card {
     uint8_t suit; // D, H, S, C (1-4)
     uint8_t rank;
-    Card(decltype(suit) suit_, decltype(rank) rank_) : suit{suit_}, rank{rank_} {}
+    Card(uint8_t suit_, uint8_t rank_) : suit(suit_), rank(rank_) {}
     Card(std::mt19937 &mt) {
-        suit = std::uniform_int_distribution<>{1, 4}(mt);
-        rank = std::uniform_int_distribution<>{1, 13}(mt);
+        suit = std::uniform_int_distribution<>(1, 4)(mt);
+        rank = std::uniform_int_distribution<>(1, 13)(mt);
     }
-    Card() : Card{0, 0} {}
+    Card() : suit(0), rank(0) {}
     std::string desc() const {
-        std::string res = std::to_string(rank);
+		std::stringstream ss;
+		ss << static_cast<int>(rank);
+		std::string res = ss.str();
         if (rank ==  1) res = "A";
         if (rank == 11) res = "J";
         if (rank == 12) res = "Q";
         if (rank == 13) res = "K";
         switch (suit) {
-            case 0: return res + u8"♦";
-            case 1: return res + u8"♥";
-            case 2: return res + u8"♠";
-            case 3: default: return res + u8"♣";
+            case 0:  return res + DIAMOND_STR;
+            case 1:  return res + HEART_STR;
+            case 2:  return res + SPADE_STR;
+            default: return res + CLUB_STR;
         }
     }
     bool operator==(const Card &other) const {
@@ -42,19 +55,19 @@ struct Card {
 class CardFactory {
     std::vector<Card> _remainingCards;
     std::mt19937 &_mt;
-    uint8_t drawnCards = 52;
+    uint8_t drawnCards;
 public:
-    CardFactory(std::mt19937 &mt) : _mt{mt}, _remainingCards(52) {}
+    CardFactory(std::mt19937 &mt) : _mt(mt), _remainingCards(52), drawnCards(52) {}
     Card getNext() {
         if (drawnCards == 52) {
             int i = 0;
             for (uint8_t suit = 0; suit <= 3; ++suit) {
                 for (uint8_t rank = 1; rank <= 13; ++rank) {
-                    _remainingCards[i] = Card{suit, rank};
+                    _remainingCards[i] = Card(suit, rank);
                     ++i;
                 }
             }
-            std::shuffle(_remainingCards.begin(), _remainingCards.end(), _mt);
+            std::random_shuffle(_remainingCards.begin(), _remainingCards.end());
             drawnCards = 0;
         }
         return _remainingCards[drawnCards++];
@@ -71,26 +84,28 @@ struct CardOption {
     // secondary_option = 0-3:
     //   - Selected Ace suit
 
-    CardOption(Card card_) : CardOption{card_, false, 0} {}
+    CardOption(Card card_) : card(card_), is_special(false), secondary_option(0) {}
     CardOption(Card card_,
                bool is_special_,
-               uint8_t secondary_option_) : card{card_}, is_special{is_special_}, secondary_option{secondary_option_} {}
+               uint8_t secondary_option_) : card(card_), is_special(is_special_), secondary_option(secondary_option_) {}
 
 
     static std::vector<CardOption> potentialCardOptions(Card c) {
-        std::vector<CardOption> result = { { c } }; // every card can be played normally
+		CardOption cardOption = c;
+        std::vector<CardOption> result; // every card can be played normally
+		result.push_back(cardOption);
         switch (c.rank) {
             case 1:
-                result.emplace_back(c, true, 2);
-                result.emplace_back(c, true, 3);
+                result.push_back(CardOption(c, true, 2));
+                result.push_back(CardOption(c, true, 3));
             case 3:
             case 7:
             case 10:
-                result.emplace_back(c, true, 1);
+                result.push_back(CardOption(c, true, 1));
             case 2:
             case 5:
             case 11:
-                result.emplace_back(c, true, 0);
+                result.push_back(CardOption(c, true, 0));
         }
         return result;
     }
@@ -99,9 +114,12 @@ struct CardOption {
         std::sort(cards.begin(), cards.end());
         std::unique(cards.begin(), cards.end());
         std::vector<CardOption> options;
-        for (Card c : cards)
-            for (CardOption co : potentialCardOptions(c))
-                options.push_back(co);
+		for (int i = 0; i < cards.size(); ++i) {
+			Card c = cards[i];
+			std::vector<CardOption> potential_options = potentialCardOptions(c);
+            for (int j = 0; j < potential_options.size(); ++j)
+				options.push_back(potential_options[j]);
+		}
         return options;
     }
 
@@ -126,10 +144,10 @@ struct CardOption {
                         return card.desc() + " (skip next player's turn)";
                 case 1:
                     switch (secondary_option) {
-                        case 0: return card.desc() + " (change suit to " + u8"♦" + ")";
-                        case 1: return card.desc() + " (change suit to " + u8"♥" + ")";
-                        case 2: return card.desc() + " (change suit to " + u8"♠" + ")";
-                        case 3: return card.desc() + " (change suit to " + u8"♣" + ")";
+                        case 0: return card.desc() + " (change suit to " + DIAMOND_STR + ")";
+                        case 1: return card.desc() + " (change suit to " + HEART_STR + ")";
+                        case 2: return card.desc() + " (change suit to " + SPADE_STR + ")";
+                        case 3: return card.desc() + " (change suit to " + CLUB_STR + ")";
                     }
             }
         }
@@ -179,7 +197,8 @@ get_input:
     int result = -1;
     std::string input;
     std::cin >> input;
-    for (char c : input) {
+	for (int i = 0; i < input.size(); ++i) {
+		char c = input[i];
         if (c < '0' || c > '9')
             break;
         if (result == -1)
@@ -196,28 +215,26 @@ get_input:
 class AttackValue {
     int _av, _prevAv;
 public:
-    explicit AttackValue(int av) : _av{av}, _prevAv{0} {}
-    int av() { return _av; }
-    int prevAv() { return _prevAv; }
+    explicit AttackValue(int av) : _av(av), _prevAv(0) {}
+    int av() const { return _av; }
+    int prevAv() const { return _prevAv; }
     void set(int av) { _prevAv = _av; _av = av; }
 };
 
 struct GameState {
     std::mt19937 &mt;
-    CardFactory cardFactory{mt};
-    AttackValue av{0};
-    int mv = 0, currentPlayer = 0;
-    bool cw = true;
-    unsigned long isbCardCount = -1;
+    CardFactory cardFactory;
+    AttackValue av;
+    int mv, currentPlayer;
+    bool cw;
+    unsigned long isbCardCount;
     std::vector<std::vector<Card>> players;
     std::vector<Card> playedCards;
 
     int isGameOver() {
-        int i = 1;
-        for (auto &hand : players) {
-            if (hand.size() == 0)
-                return i;
-            ++i;
+        for (int i = 0; i < players.size(); ++i) {
+            if (players[i].size() == 0)
+                return i + 1;
         }
         return 0;
     }
@@ -228,7 +245,8 @@ struct GameState {
     void playCard(Card card) {
         auto &cardsInHand = players[currentPlayer];
         int idx = 0;
-        for (auto c : cardsInHand) {
+		for (int i = 0; i < cardsInHand.size(); ++i) {
+			Card c = cardsInHand[i];
             if (c == card)
                 break;
             ++idx;
@@ -256,7 +274,7 @@ struct GameState {
         isbCardCount = playedCards.size();
     };
 
-    GameState(std::mt19937 &mt_, int numPlayers, int numCards) : mt{mt_} {
+	GameState(std::mt19937 &mt_, int numPlayers, int numCards) : mt(mt_), av(0), cardFactory(mt), mv(0), currentPlayer(0), cw(true), isbCardCount(-1) {
         // deal cards to players
         for (int p = 0; p < numPlayers; ++p) {
             std::vector<Card> hand;
@@ -302,10 +320,11 @@ struct GameState {
         // step 3
         auto firstCardThisTurn = true;
     chooseCard:
-        auto cardOptions = std::vector<CardOption>{};
+        std::vector<CardOption> cardOptions;
         {
             auto potentialCardOptions = CardOption::potentialCardOptions(players[currentPlayer]);
-            for (auto option : potentialCardOptions) {
+			for (int E = 0; E < potentialCardOptions.size(); ++E) {
+				auto option = potentialCardOptions[E];
 
                 if (!firstCardThisTurn) {
                     // test if it can form a valid chain
@@ -468,9 +487,9 @@ int main(int argc, const char *argv[]) {
 //    std::cout << "CardOption : " << sizeof(CardOption) << "\n";
 //    std::cout << "CardFactory: " << sizeof(CardFactory) << "\n";
 //    std::cout << "std::vector: " << sizeof(std::vector<Card>) << "\n";
-
-    std::mt19937 mt{std::random_device{}()};
-    GameState game{mt, 3, 7};
+	std::random_device rd;
+    std::mt19937 mt(rd());
+    GameState game(mt, 2, 7);
 
     while (!game.isGameOver()) {
         game.playTurn();
