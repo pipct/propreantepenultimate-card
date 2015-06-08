@@ -1,4 +1,5 @@
-# True Propreantepenultimate Card Specification
+True Propreantepenultimate Card Specification
+---------------------------------------------
 
 §1                Game State consists of:
 §1.1.1              - the current active player
