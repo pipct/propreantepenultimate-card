@@ -161,14 +161,14 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
         playedCards.push_back(card);
     }
     void printInfo() {
-        std::cout << "\n\nPile:\n";
+        std::cout << "\n\n\n\n\n\n\n--- Player " << (activePlayer + 1) << "'s Turn ---\nPile: ";
         for (auto c : playedCards) {
             std::cout << c.desc() << "\n";
         }
-        std::cout << "--- Player " << (activePlayer + 1) << "'s Turn ---\nHand: ";
+        std::cout << "\nHand: ";
         for (auto c : players[activePlayer])
             std::cout << c.desc() << "\n      ";
-        std::cout << "\n";
+        printf("\nav: %d, mv: %d, cw: %d, rm: %d, b: %d, pw: %d\n", av, mv, cw, rm, b, pw);
     }
     int activePlayer, av, mv;
     bool cw, fc, rm, b, pw;
@@ -229,18 +229,26 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
         
     step2:
         ctx->options.clear();
-        ctx->options.push_back({OptionType::NoCard, "Don't play a card"});
+        if (ctx->fc) {
+            if (std::max(1, ctx->av) == 1)
+                ctx->options.push_back({OptionType::NoCard, "Pick up 1 card"});
+            else
+                ctx->options.push_back({OptionType::NoCard, "Pick up " + std::to_string(std::max(1, ctx->av)) + " cards"});
+        } else {
+            ctx->options.push_back({OptionType::NoCard, "End turn"});
+        }
         if (ctx->fc == true) {
             ctx->options.push_back({OptionType::ReplaceHand, "Swap out your hand"});
         }
         for (Card card : ctx->players[ctx->activePlayer]) {
+            bool requireMatch = ctx->rm;
             if (ctx->fc == false) {
                 if (card.rank == ctx->topCard().rank)
-                    ctx->rm = false;
+                    requireMatch = false;
                 else if (card.rank == 3 && ctx->topCard().rank == 7 && ctx->b == true)
-                    ctx->rm = false;
+                    requireMatch = false;
                 else if (card.rank == 7 && ctx->topCard().rank == 3 && ctx->b == true)
-                    ctx->rm = false;
+                    requireMatch = false;
                 else if (ctx->playedCards.size() >= 2
                          && card.rank >= 2
                          && card.rank <= 10
@@ -269,9 +277,9 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
                              || (ctx->topCard().rank / card.rank == ctx->prevTopCard()->rank && ctx->topCard().rank % card.rank == 0)
                              || (ctx->prevTopCard()->rank / card.rank == ctx->topCard().rank && ctx->prevTopCard()->rank % card.rank == 0)
                              || (ctx->prevTopCard()->rank / ctx->topCard().rank == card.rank && ctx->prevTopCard()->rank % ctx->topCard().rank == 0)))
-                    ctx->rm = false;
+                    requireMatch = false;
                 else if (card.rank == 1 && card.suit == SPADE_SUIT && (ctx->topCard().rank == 1 || ctx->topCard().rank >= 11))
-                    ctx->rm = false;
+                    requireMatch = false;
                 else if (card.rank + 1 == ctx->topCard().rank
                          || card.rank == ctx->topCard().rank + 1
                          || (card.rank == 1  && ctx->topCard().rank == 13)
@@ -291,7 +299,7 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
             
             if (card.rank == 10)
                 if (ctx->players[ctx->activePlayer].size() > 1)
-                    if (ctx->rm == false || card.suit == ctx->topCard().suit || card.rank == ctx->topCard().rank)
+                    if (requireMatch == false || card.suit == ctx->topCard().suit || card.rank == ctx->topCard().rank)
                         ctx->options.push_back({OptionType::ChangeMV, card.desc() + " (change mv)", card});
             
             if (card.rank == 11)
@@ -305,7 +313,7 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
             
             if (ctx->av == 0)
                 if (ctx->playedCards.size() < 2 || ctx->topCard().rank != 6 || ctx->prevTopCard()->rank != 6 || card.rank != 6)
-                    if (ctx->rm == false
+                    if (requireMatch == false
                         || card.suit == ctx->topCard().suit
                         || card.rank == ctx->topCard().rank
                         || (card.rank == 12 && card.suit == HEART_SUIT && ctx->topCard().rank == 13))
