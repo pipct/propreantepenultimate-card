@@ -28,7 +28,7 @@
 #define CLUB_SUIT 3
 
 struct Card {
-    uint8_t suit; // D, H, S, C (1-4)
+    uint8_t suit; // D, H, S, C (0-3)
     uint8_t rank;
     uint8_t realSuit;
     uint8_t realRank;
