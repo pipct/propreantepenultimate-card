@@ -69,9 +69,9 @@ True Propreantepenultimate Card Specification
 §4.1.2            Unless option (2) was selected, set RM to false.
 §4.2              Now active player chooses one of the following options.
 §4.3.1.1          After the requirements of the first sentence
-§4.3.1.2              of the option text have been checked:
-§4.3.2              Unless FC is false and option 1 was selected:
-§4.3.3                RM, B and PW are reset to their initial values.
+§4.3.1.2            of the option text have been checked:
+§4.3.2                Unless FC is false and option 1 was selected:
+§4.3.3                  RM, B and PW are reset to their initial values.
 §4.4              Options:
 §4.4.1.1            1.  Don't play a card.
 §4.4.1.2                If FC is true:
