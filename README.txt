@@ -79,7 +79,8 @@ True Propreantepenultimate Card Specification
 §4.4.1.2.2                Set AV to 0
 §4.4.1.2.3                Set PW to false.
 §4.4.1.3                Go to step 1.
-§4.4.2.1            2.  FC must be true.
+§4.4.2.1.1          2.  FC must be true
+§4.4.2.1.2                and AV must be 0.
 §4.4.2.2                Play your hand without restrictions or effects.
 §4.4.2.3                Draw as many cards as you had before.
 §4.4.2.4                Go to step 1.
