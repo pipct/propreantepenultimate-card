@@ -237,7 +237,7 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
         } else {
             ctx->options.push_back({OptionType::NoCard, "End turn"});
         }
-        if (ctx->fc == true) {
+        if (ctx->fc == true && ctx->av == 0) {
             ctx->options.push_back({OptionType::ReplaceHand, "Swap out your hand"});
         }
         for (Card card : ctx->players[ctx->activePlayer]) {
