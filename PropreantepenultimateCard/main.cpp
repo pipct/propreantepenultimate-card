@@ -316,7 +316,8 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
                     if (requireMatch == false
                         || card.suit == ctx->topCard().suit
                         || card.rank == ctx->topCard().rank
-                        || (card.rank == 12 && card.suit == HEART_SUIT && ctx->topCard().rank == 13))
+                        || (card.rank == 12 && card.suit == HEART_SUIT && ctx->topCard().rank == 13)
+                        || (card.rank == 13 && card.suit == HEART_SUIT && ctx->topCard().rank == 12))
                         ctx->options.push_back({OptionType::NormalCard, card.desc(), card});
         }
         
