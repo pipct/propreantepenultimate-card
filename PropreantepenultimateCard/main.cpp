@@ -410,9 +410,9 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
             ccrReturn(ctx->options);
             ctx->selectedOption = ctx->options[selectedOptionIdx];
             if (ctx->selectedOption.type == OptionType::HaveAnotherTurn)
-                ++ctx->mv;
-            else
                 --ctx->mv;
+            else
+                ++ctx->mv;
         } else if (ctx->selectedOption.type == OptionType::ChangeDirection) {
             ctx->cw = !ctx->cw;
         } else if (ctx->selectedOption.type == OptionType::ChangeSuit) {
