@@ -112,9 +112,9 @@ public:
 
 struct GameInitSettings {
     int numPlayers, numCards;
-    std::mt19937 &mt;
+    std::mt19937 mt;
     CardFactory cardFactory;
-    GameInitSettings(int np, int nc, std::mt19937 &mt_) : numPlayers(np), numCards(nc), mt(mt_), cardFactory(mt_) {}
+    GameInitSettings(int np, int nc, std::mt19937 mt_) : numPlayers(np), numCards(nc), mt(mt_), cardFactory(mt_) {}
 };
 
 enum class OptionType : uint8_t {
@@ -245,9 +245,15 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
             if (ctx->fc == false) {
                 if (card.rank == ctx->topCard().rank)
                     requireMatch = false;
+                else if (ctx->prevTopCard() != nullptr && card.rank == ctx->prevTopCard()->rank)
+                    requireMatch = false;
                 else if (card.rank == 3 && ctx->topCard().rank == 7 && ctx->b == true)
                     requireMatch = false;
+                else if (ctx->prevTopCard() != nullptr && card.rank == 3 && ctx->prevTopCard()->rank == 7 && ctx->b == true)
+                    requireMatch = false;
                 else if (card.rank == 7 && ctx->topCard().rank == 3 && ctx->b == true)
+                    requireMatch = false;
+                else if (ctx->prevTopCard() != nullptr && card.rank == 7 && ctx->prevTopCard()->rank == 3 && ctx->b == true)
                     requireMatch = false;
                 else if (ctx->playedCards.size() >= 2
                          && card.rank >= 2
@@ -280,10 +286,30 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
                     requireMatch = false;
                 else if (card.rank == 1 && card.suit == SPADE_SUIT && (ctx->topCard().rank == 1 || ctx->topCard().rank >= 11))
                     requireMatch = false;
+                else if (ctx->prevTopCard() != nullptr
+                         && card.rank == 1
+                         && card.suit == SPADE_SUIT
+                         && (ctx->prevTopCard()->rank == 1 || ctx->prevTopCard()->rank >= 11))
+                    requireMatch = false;
+                else if (std::accumulate(ctx->playedCards.rbegin(),
+                                            ctx->playedCards.rend(),
+                                            std::pair<Card, int>{ctx->topCard(), 0},
+                                            [](std::pair<Card, int> a, Card b) -> std::pair<Card, int> {
+                                                if (b.rank == a.first.rank || a.first.rank == 0)
+                                                    return {b, a.second + 1};
+                                                return {{SPADE_SUIT, 255}, a.second};
+                                            }).second == card.rank
+                         && card.rank >= 2 && card.rank <= 10)
+                    requireMatch = false;
                 else if (card.rank + 1 == ctx->topCard().rank
                          || card.rank == ctx->topCard().rank + 1
                          || (card.rank == 1  && ctx->topCard().rank == 13)
                          || (card.rank == 13 && ctx->topCard().rank == 1))
+                    ;
+                else if (card.rank + 1 == ctx->prevTopCard()->rank
+                         || card.rank == ctx->prevTopCard()->rank + 1
+                         || (card.rank == 1  && ctx->prevTopCard()->rank == 13)
+                         || (card.rank == 13 && ctx->prevTopCard()->rank == 1))
                     ;
                 else
                     continue;
@@ -424,9 +450,7 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
 }
 
 int main(int argc, const char *argv[]) {
-    std::random_device rd;
-    std::mt19937 mt(rd());
-    GameInitSettings settings(3, 7, mt);
+    GameInitSettings settings(3, 7, std::mt19937{std::random_device{}()});
     ccrContext ctx = nullptr;
     int option = 0;
     while (true) {
