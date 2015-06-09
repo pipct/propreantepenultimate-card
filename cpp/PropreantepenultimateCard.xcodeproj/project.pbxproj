@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		F3E2AE061B16FD3200EF1C7D /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3E2AE051B16FD3200EF1C7D /* main.cpp */; };
+		F36E03BB1B26F3DC00651DB2 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36E03BA1B26F3DC00651DB2 /* main.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,9 +23,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		F31A92051B230738009071B7 /* coroutine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = coroutine.h; sourceTree = "<group>"; };
+		F36E03B91B26F3DC00651DB2 /* coroutine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = coroutine.h; path = ProPropreantepenultimateCard/coroutine.h; sourceTree = SOURCE_ROOT; };
+		F36E03BA1B26F3DC00651DB2 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ProPropreantepenultimateCard/main.cpp; sourceTree = SOURCE_ROOT; };
 		F3E2AE021B16FD3200EF1C7D /* PropreantepenultimateCard */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = PropreantepenultimateCard; sourceTree = BUILT_PRODUCTS_DIR; };
-		F3E2AE051B16FD3200EF1C7D /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,8 +58,8 @@
 		F3E2AE041B16FD3200EF1C7D /* PropreantepenultimateCard */ = {
 			isa = PBXGroup;
 			children = (
-				F3E2AE051B16FD3200EF1C7D /* main.cpp */,
-				F31A92051B230738009071B7 /* coroutine.h */,
+				F36E03B91B26F3DC00651DB2 /* coroutine.h */,
+				F36E03BA1B26F3DC00651DB2 /* main.cpp */,
 			);
 			path = PropreantepenultimateCard;
 			sourceTree = "<group>";
@@ -120,7 +120,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3E2AE061B16FD3200EF1C7D /* main.cpp in Sources */,
+				F36E03BB1B26F3DC00651DB2 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

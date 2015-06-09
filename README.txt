@@ -29,10 +29,14 @@ True Propreantepenultimate Card Specification
 
 §3              Card Matches:
 §3.1              BasicMatch(A, B) is defined to only be true if:
-§3.1.1              - the rank of A is equal to the rank of B, or
+§3.1.1              - The rank of A is equal to the rank of B, or
 §3.1.2              - A is a Queen of Hearts and B is any King, or
 §3.1.3              - A is a King of Hearts and B is any Queen, or
-§3.1.4              - A is an Ace of Spades and B has a non-numeric rank
+§3.1.4              - A is an Ace of Spades and B has a non-numeric rank, or
+§3.1.5.1            - The rank of A is equal to
+§3.1.5.2                the number of topmost consecutive cards
+§3.1.5.3                on the pile
+§3.1.5.4                with identical ranks.
 §3.2              A card can be played as a type 1 match if:
 §3.2.1              - if RM is false, or
 §3.2.2              - BasicMatch(this card, topmost card) must be true, or
@@ -58,11 +62,7 @@ True Propreantepenultimate Card Specification
 §3.3.5.4.2.1              (top two cards from the pile
 §3.3.5.4.2.2                and the card to be played)
 §3.3.5.4.5                in any order
-§3.3.5.6                is an integer equal to the remaining card’s rank, or
-§3.3.6.1            6.  The card's rank is equal to
-§3.3.6.2                the number of topmost consecutive cards
-§3.3.6.3                on the pile
-§3.3.6.4                with identical ranks.
+§3.3.5.5                is an integer equal to the remaining card’s rank.
 §3.4              Both type 1 and type 2 matches also require that
 §3.4.1              if the two topmost cards both have rank 6,
 §3.4.2              this card can’t have rank 6.

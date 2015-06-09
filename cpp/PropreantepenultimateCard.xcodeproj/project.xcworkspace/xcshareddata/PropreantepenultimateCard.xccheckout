@@ -14,11 +14,11 @@
 		<string>github.com:pipct/propreantepenultimate-card.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>PropreantepenultimateCard.xcodeproj</string>
+	<string>cpp/PropreantepenultimateCard.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>79C1765A8B695B252F75C0DA2FF677E2E433C62E</key>
-		<string>../..</string>
+		<string>../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>github.com:pipct/propreantepenultimate-card.git</string>

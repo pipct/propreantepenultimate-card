@@ -347,7 +347,18 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
                         || (ctx->prevTopCard() != nullptr
                             && card.rank == 1
                             && card.suit == SPADE_SUIT
-                            && (ctx->prevTopCard()->rank == 1 || ctx->prevTopCard()->rank >= 11)))
+                            && (ctx->prevTopCard()->rank == 1 || ctx->prevTopCard()->rank >= 11))
+                        || (ctx->playedCards.size() > 0
+                            && std::accumulate(ctx->playedCards.rbegin(),
+                                               ctx->playedCards.rend(),
+                                               std::pair<Card, int>{ctx->topCard(), 0},
+                                               [](std::pair<Card, int> a, Card b) -> std::pair<Card, int> {
+                                                   if (b.rank == a.first.rank || a.first.rank == 0)
+                                                       return {b, a.second + 1};
+                                                   return {{SPADE_SUIT, 255}, a.second};
+                                               }).second == card.rank
+                            && card.rank >= 2
+                            && card.rank <= 10))
                         ctx->options.push_back({OptionType::NormalCard, card.desc(), card});
         }
         
