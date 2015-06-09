@@ -343,7 +343,11 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
                         || card.suit == ctx->topCard().suit
                         || card.rank == ctx->topCard().rank
                         || (card.rank == 12 && card.suit == HEART_SUIT && ctx->topCard().rank == 13)
-                        || (card.rank == 13 && card.suit == HEART_SUIT && ctx->topCard().rank == 12))
+                        || (card.rank == 13 && card.suit == HEART_SUIT && ctx->topCard().rank == 12)
+                        || (ctx->prevTopCard() != nullptr
+                            && card.rank == 1
+                            && card.suit == SPADE_SUIT
+                            && (ctx->prevTopCard()->rank == 1 || ctx->prevTopCard()->rank >= 11)))
                         ctx->options.push_back({OptionType::NormalCard, card.desc(), card});
         }
         

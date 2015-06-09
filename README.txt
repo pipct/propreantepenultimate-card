@@ -27,45 +27,45 @@ True Propreantepenultimate Card Specification
 §2.4              If the rank is Ace, set RM to false.
 §2.5              Go to step 1.
 
-§4              Card Matches:
-§4.1              A card can be played as a type 1 match if:
-§4.1.1.1            - if the two topmost cards both have rank 6:
-§4.1.1.2                this card's doesn’t have rank 6
-§4.1.2.1            - and, if RM is true:
-§4.1.2.2              - the rank or suit of this card must match, or
-§4.1.2.3              - if this card is a Queen of Hearts,
-§4.1.2.4                  the top card must be a King,
-§4.1.2.5              - or if it is a King of Hearts,
-§4.1.2.6                  the top card must be a Queen.
-§4.2              A card can be played as a type 2 match if:
-§4.2.1.1            1.  It has the same rank as the
-§4.2.1.2                  topmost or the penultimate card, or
-§4.2.2.1            2.  Its rank is ±1 of the top or penultimate card’s rank,
-§4.2.2.2                  wrapping at Ace, or
-§4.2.3.1            3.  It has rank 3 or 7,
-§4.2.3.2                  and the topmost or penultimate card
-§4.2.3.3                  has rank 7 or 3 respectively,
-§4.2.3.4                  and B is true, or
-§4.2.4.1            4.  At least two cards have been played so far,
-§4.2.4.2.1              the top two cards and the card to be played
-§4.2.4.2.2                have a rank between 2 and 10 (inclusive),
-§4.2.4.3                and either the
-§4.2.4.3.1                - sum
-§4.2.4.3.2                - difference
-§4.2.4.3.3                - product
-§4.2.4.3.4                - or quotient
-§4.2.4.4.1              of the ranks of two of the three cards
-§4.2.4.4.2.1              (top two cards from the pile
-§4.2.4.4.2.2                and the card to be played)
-§4.2.4.5                in any order
-§4.2.4.6                is an integer equal to the remaining card’s rank, or
-§4.2.5.1            5.  It is an Ace of Spades
-§4.2.5.2                being played on a top or penultimate card
-§4.2.5.3                with a non-numeric rank, or
-§4.2.6.1            6.  The card's rank is equal to
-§4.2.6.2                the number of topmost consecutive cards
-§4.2.6.3                on the pile
-§4.2.6.4                with identical ranks.
+§3              Card Matches:
+§3.1              BasicMatch(A, B) is defined to only be true if:
+§3.1.1              - the rank of A is equal to the rank of B, or
+§3.1.2              - A is a Queen of Hearts and B is any King, or
+§3.1.3              - A is a King of Hearts and B is any Queen, or
+§3.1.4              - A is an Ace of Spades and B has a non-numeric rank
+§3.2              A card can be played as a type 1 match if:
+§3.2.1              - if RM is false, or
+§3.2.2              - BasicMatch(this card, topmost card) must be true, or
+§3.2.3              - the card must have the same suit as the topmost card
+§3.3              A card can be played as a type 2 match if:
+§3.3.1              1.  BasicMatch(this card, topmost card) is true, or
+§3.3.2              2.  BasicMatch(this card, penultimate card) is true, or
+§3.3.3.1            3.  Its rank is ±1 of the top or penultimate card’s rank,
+§3.3.3.2                  wrapping at Ace, or
+§3.3.4.1            4.  It has rank 3 or 7,
+§3.3.4.2                  and the topmost or penultimate card
+§3.3.4.3                  has rank 7 or 3 respectively,
+§3.3.4.4                  and B is true, or
+§3.3.5.1            5.  At least two cards have been played so far,
+§3.3.5.2.1              the top two cards and the card to be played
+§3.3.5.2.2                have a rank between 2 and 10 (inclusive),
+§3.3.5.3                and either the
+§3.3.5.3.1                - sum
+§3.3.5.3.2                - difference
+§3.3.5.3.3                - product
+§3.3.5.3.4                - or quotient
+§3.3.5.4.1              of the ranks of two of the three cards
+§3.3.5.4.2.1              (top two cards from the pile
+§3.3.5.4.2.2                and the card to be played)
+§3.3.5.4.5                in any order
+§3.3.5.6                is an integer equal to the remaining card’s rank, or
+§3.3.6.1            6.  The card's rank is equal to
+§3.3.6.2                the number of topmost consecutive cards
+§3.3.6.3                on the pile
+§3.3.6.4                with identical ranks.
+§3.4              Both type 1 and type 2 matches also require that
+§3.4.1              if the two topmost cards both have rank 6,
+§3.4.2              this card can’t have rank 6.
 
 §4              Card Options:
 §4.1.1            1.  Don't play a card.
@@ -91,7 +91,7 @@ True Propreantepenultimate Card Specification
 §4.4.3.2.1            otherwise:
 §4.4.3.2.2              Set B to true
 §4.4.4.1.1            If the preceding card’s rank is
-§4.4.4.1.2                different from this card’s rank,
+§4.4.4.1.2              different from this card’s rank,
 §4.4.4.2                it is 3 or 7,
 §4.4.4.3                and FC is false:
 §4.4.4.4                The active player can choose to set AV to 0.
@@ -118,38 +118,38 @@ True Propreantepenultimate Card Specification
 §4.8.2.2                is played horizontally:
 §4.8.2.3                Set its rank to 11 minus the card's original rank.
 
-§3              Step 1:
-§3.1.1            If PW is false and any player has an empty hand:
-§3.1.2              That player wins the game.
-§3.2.1            The player Max(0, MV) steps of the current active player
-§3.2.2              becomes the new active player,
-§3.2.3              clockwise if CW is true or otherwise counterclockwise.
-§3.3.1            If MV is positive, set it to 0.
-§3.3.2            Increment MV.
-§3.4              Set FC to true and B to false.
+§5              Step 1:
+§5.1.1            If PW is false and any player has an empty hand:
+§5.1.2              That player wins the game.
+§5.2.1            The player Max(0, MV) steps of the current active player
+§5.2.2              becomes the new active player,
+§5.2.3              clockwise if CW is true or otherwise counterclockwise.
+§5.3.1            If MV is positive, set it to 0.
+§5.3.2            Increment MV.
+§5.4              Set FC to true and B to false.
 
-§5              Step 2:
-§5.1              Choose any card option.
-§5.2              Set RM2 to RM.
-§5.3.1            If FC is false:
-§5.3.2              If one of the options in §4.1.3-8 was selected:
-§5.3.3                The card to be played must be valid as a type 2 match.
-§5.3.4                Unless §4.2.2 was selected, set RM2 to false.
-§5.4.1            If the requirements in the first sentence 
-§5.4.2              of the selected option’s text can’t be fulfilled:
-§5.4.3                Set RM to RM2.
-§5.4.4                Go to step 2.
-§5.5.1            Unless FC is false and option 1 was selected:
-§5.5.2              RM, B and PW are reset to their initial values.
-§5.6              Follow any remaining instructions of the selected option.
-§5.7              Set FC to false and go to step 2.
+§6              Step 2:
+§6.1              Choose any card option.
+§6.2              Set RM2 to RM.
+§6.3.1            If FC is false:
+§6.3.2              If one of the options in §4.3-8 was selected:
+§6.3.3                The card to be played must be valid as a type 2 match.
+§6.3.4                Unless §3.3.3 was selected, set RM2 to false.
+§6.4.1            If the requirements in the first sentence 
+§6.4.2              of the selected option’s text can’t be fulfilled:
+§6.4.3                Set RM to RM2.
+§6.4.4                Go to step 2.
+§6.5.1            Unless FC is false and option 1 was selected:
+§6.5.2              RM, B and PW are reset to their initial values.
+§6.6              Follow any remaining instructions of the selected option.
+§6.7              Set FC to false and go to step 2.
 
-§6              Final turns:
-§6.1.1            Any player that says “Last Card” must draw a card
-§6.1.2                unless this is desired by the player.
-§6.2.1            A player can only play their last card
-§6.2.2              if they said the second word of this game's name
-§6.2.3              before the active player last changed.
-§6.3.1            Any player who mispronounces "Propreantepenultimate Card"
-§6.3.2              (including shortening it) must draw a card
-§6.3.3                unless this is desired by the player.
+§7              Final turns:
+§7.1.1            Any player that says “Last Card” must draw a card
+§7.1.2              unless this is desired by the player.
+§7.2.1            A player can only play their last card
+§7.2.2              if they said the second word of this game's name
+§7.2.3              before the active player last changed.
+§7.3.1            Any player who mispronounces "Propreantepenultimate Card"
+§7.3.2              (including shortening it) must draw a card
+§7.3.3                unless this is desired by the player.
