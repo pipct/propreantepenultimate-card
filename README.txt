@@ -144,10 +144,12 @@ True Propreantepenultimate Card Specification
 §5.6              Follow any remaining instructions of the selected option.
 §5.7              Set FC to false and go to step 2.
 
-§6              Miscellaneous:
-§6.1              Any player that says “Last Card” must draw a card.
+§6              Final turns:
+§6.1.1            Any player that says “Last Card” must draw a card
+§6.1.2                unless this is desired by the player.
 §6.2.1            A player can only play their last card
 §6.2.2              if they said the second word of this game's name
 §6.2.3              before the active player last changed.
 §6.3.1            Any player who mispronounces "Propreantepenultimate Card"
-§6.3.2              (including shortening it) must draw a card.
+§6.3.2              (including shortening it) must draw a card
+§6.3.3                unless this is desired by the player.
