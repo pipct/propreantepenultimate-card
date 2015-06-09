@@ -132,7 +132,10 @@ True Propreantepenultimate Card Specification
 §4.4.8.2.3                Set its rank to 11 minus the card's original rank.
 §4.5              Set FC to false and go to step 2.
 
+§5
 §5.1              Any player that says “Last Card” must draw a card.
 §5.2.1            A player can only play their last card
 §5.2.2              if they said the second word of this game's name
 §5.2.3              before the active player last changed.
+§5.3.1            Any player who mispronounces "Propreantepenultimate Card"
+§5.3.2              (including shortening it) must draw a card.
