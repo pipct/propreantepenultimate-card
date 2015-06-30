@@ -70,10 +70,10 @@ struct Card {
             res += ss.str();
         }
         switch (suit) {
-            case DIAMOND_SUIT: res += DIAMOND_STR;
-            case HEART_SUIT:   res += HEART_STR;
-            case SPADE_SUIT:   res += SPADE_STR;
-            default:           res += CLUB_STR;
+            case DIAMOND_SUIT: res += DIAMOND_STR; break;
+            case HEART_SUIT:   res += HEART_STR; break;
+            case SPADE_SUIT:   res += SPADE_STR; break;
+            default:           res += CLUB_STR; break;
         }
         return res + ")";
     }
@@ -465,7 +465,7 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
 }
 
 int main(int argc, const char *argv[]) {
-    GameInitSettings settings(3, 7, std::mt19937{std::random_device{}()});
+    GameInitSettings settings(2, 7, std::mt19937{std::random_device{}()});
     ccrContext ctx = nullptr;
     int option = 0;
     while (true) {
