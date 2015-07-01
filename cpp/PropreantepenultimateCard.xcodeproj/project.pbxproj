@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		F36E03BB1B26F3DC00651DB2 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36E03BA1B26F3DC00651DB2 /* main.cpp */; };
+		F3E37CFF1B43CDDF0000122B /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3E37CFE1B43CDDF0000122B /* main.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,9 +23,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		F36E03B91B26F3DC00651DB2 /* coroutine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = coroutine.h; path = ProPropreantepenultimateCard/coroutine.h; sourceTree = SOURCE_ROOT; };
-		F36E03BA1B26F3DC00651DB2 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ProPropreantepenultimateCard/main.cpp; sourceTree = SOURCE_ROOT; };
 		F3E2AE021B16FD3200EF1C7D /* PropreantepenultimateCard */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = PropreantepenultimateCard; sourceTree = BUILT_PRODUCTS_DIR; };
+		F3E37CFD1B43CDDF0000122B /* coroutine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = coroutine.h; path = PropreantepenultimateCard/coroutine.h; sourceTree = "<group>"; };
+		F3E37CFE1B43CDDF0000122B /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = PropreantepenultimateCard/main.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,7 +42,8 @@
 		F3E2ADF91B16FD3100EF1C7D = {
 			isa = PBXGroup;
 			children = (
-				F3E2AE041B16FD3200EF1C7D /* PropreantepenultimateCard */,
+				F3E37CFD1B43CDDF0000122B /* coroutine.h */,
+				F3E37CFE1B43CDDF0000122B /* main.cpp */,
 				F3E2AE031B16FD3200EF1C7D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -53,15 +54,6 @@
 				F3E2AE021B16FD3200EF1C7D /* PropreantepenultimateCard */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		F3E2AE041B16FD3200EF1C7D /* PropreantepenultimateCard */ = {
-			isa = PBXGroup;
-			children = (
-				F36E03B91B26F3DC00651DB2 /* coroutine.h */,
-				F36E03BA1B26F3DC00651DB2 /* main.cpp */,
-			);
-			path = PropreantepenultimateCard;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -90,7 +82,7 @@
 		F3E2ADFA1B16FD3100EF1C7D /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0630;
+				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = "Tobias Heitland";
 				TargetAttributes = {
 					F3E2AE011B16FD3200EF1C7D = {
@@ -120,7 +112,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F36E03BB1B26F3DC00651DB2 /* main.cpp in Sources */,
+				F3E37CFF1B43CDDF0000122B /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -147,6 +139,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;

@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <stdint.h>
 #include <sstream>
+#include <stdlib.h>
+#include <numeric>
 
 #include "coroutine.h"
 
@@ -314,6 +316,15 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
                 else
                     continue;
             }
+            
+            if (ctx->playedCards.size() >= 2
+                && card.rank >= 2
+                && card.rank <= 10
+                && (card.rank
+                    + ((ctx->topCard()     .rank >= 2 && ctx->topCard()     .rank <= 10) ? ctx->topCard()     .rank : 0)
+                    + ((ctx->prevTopCard()->rank >= 2 && ctx->prevTopCard()->rank <= 10) ? ctx->prevTopCard()->rank : 0))
+                % 3 == 0)
+                continue;
             
             if (card.rank == 2 || card.rank == 5)
                 if (ctx->players[ctx->activePlayer].size() > 1)
