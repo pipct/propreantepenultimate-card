@@ -1,4 +1,4 @@
-True Propreantepenultimate Card Specification Version 2, Revision 1
+True Propreantepenultimate Card Specification Version 2, Revision 2
 -------------------------------------------------------------------
 
 §1              Game State:
@@ -29,14 +29,14 @@ True Propreantepenultimate Card Specification Version 2, Revision 1
 
 §3              Card Matches:
 §3.1              BasicMatch(A, B) is true if and only if:
-§3.1.1              - The rank of A is equal to the rank of B, or
-§3.1.2              - A is a Queen of Hearts and B is any King, or
-§3.1.3              - A is a King of Hearts and B is any Queen, or
-§3.1.4              - A is an Ace of Spades and B has a non-numeric rank, or
-§3.1.5.1            - The rank of A is equal to
-§3.1.5.2                the number of topmost consecutive cards
-§3.1.5.3                on the pile
-§3.1.5.4                with identical ranks.
+§3.1.1              1.  The rank of A is equal to the rank of B, or
+§3.1.2              2.  A is a Queen of Hearts and B is any King, or
+§3.1.3              3.  A is a King of Hearts and B is any Queen, or
+§3.1.4              4.  A is an Ace of Spades and B has a non-numeric rank, or
+§3.1.5.1            5.  The rank of A is equal to
+§3.1.5.2                  the number of topmost consecutive cards
+§3.1.5.3                  on the pile
+§3.1.5.4                  with identical ranks.
 §3.2              GeneralMatch(A):
 §3.2.1.1            If the two topmost cards both have rank 6:
 §3.2.1.2              If A has rank 6:
@@ -53,9 +53,9 @@ True Propreantepenultimate Card Specification Version 2, Revision 1
 §3.2.3              Otherwise GeneralMatch(A) is true.
 §3.3.1            A card can be played as a type 1 match
 §3.3.2              if GeneralMatch(this card) is true and if:
-§3.3.3                - if RM is false, or
-§3.3.4                - BasicMatch(this card, topmost card) must be true, or
-§3.3.5                - the card must have the same suit as the topmost card
+§3.3.3                1.  RM is false, or
+§3.3.4                2.  BasicMatch(this card, topmost card) is be true, or
+§3.3.5                3.  The card has the same suit as the topmost card
 §3.4.1            A card can be played as a type 2 match
 §3.4.2              if GeneralMatch(this card) is true and if:
 §3.4.3                1.  BasicMatch(this card, topmost card) is true, or
@@ -113,7 +113,7 @@ True Propreantepenultimate Card Specification Version 2, Revision 1
 §4.4.5.4                Go to step 1.
 §4.5.1.1          5.  The card’s rank must be 10,
 §4.5.1.2                it mustn’t be the player’s last card,
-§4.5.1.3                and it must be a type 1 match.
+§4.5.1.3                and it must be valid as a type 1 match.
 §4.5.2.1              The active player chooses to either
 §4.5.2.2.1              - increase
 §4.5.2.2.2              - or decrease
@@ -127,7 +127,7 @@ True Propreantepenultimate Card Specification Version 2, Revision 1
 §4.7.2.1              The player selects a suit
 §4.7.2.2                to which this card’s suit changes.
 §4.8.1.1          8.  AV must be 0,
-§4.8.1.2                and it must be a type 1 match.
+§4.8.1.2                and it must be valid as a type 1 match.
 §4.8.2.1              If a card with rank between 2 and 10 (inclusive)
 §4.8.2.2                is played horizontally:
 §4.8.2.3                Set its rank to 11 minus the card's original rank.
