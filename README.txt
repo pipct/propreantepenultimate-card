@@ -1,4 +1,4 @@
-True Propreantepenultimate Card Specification Version 2, Revision 3
+True Propreantepenultimate Card Specification Version 2, Revision 4
 -------------------------------------------------------------------
 
 §1              Game State:
@@ -70,6 +70,9 @@ True Propreantepenultimate Card Specification Version 2, Revision 3
 §3.5.1              -  If strict matching applies:
 §3.5.2                -  If FC is true:
 §3.5.3                  -  If RM is false, or
+§3.4.2.1                -  If the rank of A is equal to
+§3.4.2.2                     the number of topmost consecutive cards
+§3.4.2.3                     on the pile with identical ranks, or
 §3.5.4                  -  Where B is the topmost card:
 §3.5.4.1                  -  If the rank of A is equal to the rank of B, or
 §3.5.4.2                  -  If the suit of A is equal to the suit of B, or
