@@ -1,4 +1,4 @@
-True Propreantepenultimate Card Specification Version 3, Revision 1
+True Propreantepenultimate Card Specification Version 3, Revision 2
 -------------------------------------------------------------------
 
 §1              Game State:
@@ -28,7 +28,8 @@ True Propreantepenultimate Card Specification Version 3, Revision 1
 §3.1              Any card C can only be played:
 §3.1.1              -  If the two topmost cards both have rank 6,
                          C does not have rank 6, and
-§3.1.2              -  If strict matching applies, requirement A is satisfied, and
+§3.1.2              -  If strict matching applies,
+                         requirement A is satisfied, and
 §3.1.3              -  If FC is false, requirement B is satisfied
 §3.2              Requirement A is satisfied if:
 §3.2.1              -  If RM is false, or
