@@ -1,4 +1,4 @@
-True Propreantepenultimate Card Specification Version 3, Revision 2
+True Propreantepenultimate Card Specification Version 3, Revision 3
 -------------------------------------------------------------------
 
 §1              Game State:
@@ -13,6 +13,8 @@ True Propreantepenultimate Card Specification Version 3, Revision 2
 §1.5              - boolean FC (first card this turn)
                     (true)
 §1.6              - boolean B (bridging 3s and 7s)
+                    (false)
+§1.7              - boolean ET (end turn)
                     (false)
 
 §2              Dealing:
@@ -59,45 +61,43 @@ True Propreantepenultimate Card Specification Version 3, Revision 2
 
 §4              Card Options:
 §4.1.1            1.  If FC is true:
-§4.1.1.1                Draw Max(1, AV) cards
-§4.1.1.2                Set AV to 0
-§4.1.2                Go to step 1.
-§4.2.1.1          2.  Play a card of rank 2 or 5
-§4.2.1.2                which can’t be the player’s last card.
+§4.1.1.1                Draw Max(1, AV) cards.
+§4.1.1.2                Set AV to 0.
+§4.1.2                Set ET to true.
+§4.2.1            2.  Play a card of rank 2 or 5
+                        which can’t be the player’s last card.
 §4.2.2                Increase AV by the card’s rank.
-§4.3.1.1          3.  Play a card of rank 3 or 7
-§4.3.1.2.1              and either it’s not playable as the player’s last card
-§4.3.1.2.2                or AV mustn’t be 0.
+§4.3.1.1          3.  Play a card of rank 3 or 7, and
+§4.3.1.2                either it’s not playable as the player’s last card
+§4.3.1.3                or AV mustn’t be 0.
 §4.3.2                Decrease AV by this card’s rank.
-§4.3.3.1.1            If AV is 0 or less:
-§4.3.3.1.2              Set AV to 0
-§4.3.3.2.1            otherwise:
-§4.3.3.2.2              Set B to true
-§4.3.4.1.1            If the preceding card’s rank is
-§4.3.4.1.2              different from this card’s rank,
-§4.3.4.2                it is 3 or 7,
-§4.3.4.3                and FC is false:
-§4.3.4.4                The active player can choose to set AV to 0.
-§4.3.5.1              If the active player now has no cards and AV is not 0:
+§4.3.3.1              If AV is 0 or less:
+§4.3.3.2                Set AV to 0.
+§4.3.3.3              Otherwise:
+§4.3.3.4                Set B to true.
+§4.3.4.1              If the preceding card’s rank is
+§4.3.4.2                different from this card’s rank,
+§4.3.4.3                it is 3 or 7,
+§4.3.4.4                and FC is false:
+§4.3.4.5                The active player can choose to set AV to 0.
+§4.3.5.1              If the active player now has no cards and AV is non-zero:
 §4.3.5.2                Draw AV cards.
 §4.3.5.3                Set AV to 0.
-§4.3.5.4                Go to step 1.
-§4.4.1.1          4.  Play a strictly matching card of rank 10,
-§4.4.1.2                which mustn’t be the player’s last card.
-§4.4.2.1              The active player chooses to either
-§4.4.2.2.1              - increase
-§4.4.2.2.2              - or decrease
-§4.4.2.3              MV by 1.
-§4.5.1.1          5.  Play a card of rank Jack
-§4.5.1.2                and not the player’s last card.
+§4.3.5.4                Set ET to true.
+§4.4.1            4.  Play a strictly matching card of rank 10,
+                        which mustn’t be the player’s last card.
+§4.4.2                The active player chooses to either
+                        increase or decrease MV by 1.
+§4.5.1            5.  Play a card of rank Jack
+                        which is not the player’s last card.
 §4.5.2                Set CW to its inverse.
-§4.6.1.1          6.  Play a card of rank Ace
-§4.6.1.2                which is not the player’s last card,
-§4.6.1.3                and AV must be 0.
-§4.6.2.1              The player selects a suit
-§4.6.2.2                to which this card’s suit changes.
-§4.7.1.1          7.  Play any strictly matching card,
-§4.7.1.2                but AV must be 0.
+§4.6.1            6.  Play a card of rank Ace
+                        which is not the player’s last card,
+                        and AV must be 0.
+§4.6.2                The player selects a suit
+                        to which this card’s suit changes.
+§4.7.1            7.  Play any strictly matching card,
+§4.7.2                  but AV must be 0.
 
 §5              Step 1:
 §5.1              If any player has an empty hand, that player wins the game.
@@ -109,12 +109,14 @@ True Propreantepenultimate Card Specification Version 3, Revision 2
 §5.5              Set FC to true and B to false.
 
 §6              Step 2:
-§6.1              Choose any card option and follow all its instructions.
+§6.1              Set ET to false.
+§6.2              Choose any card option and follow all its instructions.
                     Numeric cards may be played horizontally.
-§6.2              Horizontal cards are turned upright, in which case
+§6.3              Horizontal played cards are turned upright, in which case
                     their rank is set to 11 minus the original rank, with 10s
                     becoming Aces.
-§6.3              Set FC to false and go to step 2.
+§6.4              Set FC to false.
+§6.5              If ET is true, go to step 1. Otherwise go to step 2.
 
 §7              Final turns:
 §7.1              A player can only play their last card
