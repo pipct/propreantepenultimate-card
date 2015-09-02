@@ -1,4 +1,4 @@
-True Propreantepenultimate Card Specification Version 3, Revision 3
+True Propreantepenultimate Card Specification Version 3, Revision 4
 -------------------------------------------------------------------
 
 §1              Game State:
@@ -35,8 +35,8 @@ True Propreantepenultimate Card Specification Version 3, Revision 3
 §3.1.3              -  If FC is false, requirement B is satisfied
 §3.2              Requirement A is satisfied if:
 §3.2.1              -  If RM is false, or
-§3.2.2              -  Where B is the topmost or penultimate card:
-                      -  If the suit of C is equal to the suit of B
+§3.2.2              -  Where T is the topmost or penultimate card:
+                      -  If the suit of C is equal to the suit of T
 §3.3              Requirement B is satisfied if:
 §3.3.1              -  Its rank is ±1 of the top or penultimate card’s rank,
                          wrapping at Ace

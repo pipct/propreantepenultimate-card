@@ -85,9 +85,6 @@ struct Card {
     bool operator<(const Card &other) const {
         return realRank < other.realRank || (realRank == other.realRank && realSuit < other.realSuit);
     }
-    bool potentially_special() const {
-        return false;
-    }
 };
 
 class CardFactory {
@@ -121,7 +118,7 @@ struct GameInitSettings {
 
 enum class OptionType : uint8_t {
     Null = 0,
-    NoCard, ReplaceHand, Attack, Block, ChangeMV, ChangeDirection, ChangeSuit, NormalCard,
+    NoCard, Attack, Block, ChangeMV, ChangeDirection, ChangeSuit, NormalCard,
     NormalBlockOnly, BlockEverything,
     HaveAnotherTurn, SkipNextPlayersTurn,
     ChooseSuitDiamonds, ChooseSuitHearts, ChooseSuitSpades, ChooseSuitClubs,
@@ -239,9 +236,6 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
         } else {
             ctx->options.push_back({OptionType::NoCard, "End turn"});
         }
-        if (ctx->fc == true && ctx->av == 0) {
-            ctx->options.push_back({OptionType::ReplaceHand, "Swap out your hand"});
-        }
         for (Card card : ctx->players[ctx->activePlayer]) {
             bool requireMatch = ctx->rm;
             if (ctx->fc == false) {
@@ -268,23 +262,9 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
                              || card.rank + ctx->prevTopCard()->rank == ctx->topCard().rank
                              || ctx->topCard().rank + ctx->prevTopCard()->rank == card.rank
                              
-                             || card.rank - ctx->topCard().rank == ctx->prevTopCard()->rank
-                             || card.rank - ctx->prevTopCard()->rank == ctx->topCard().rank
-                             || ctx->topCard().rank - ctx->prevTopCard()->rank == card.rank
-                             || ctx->topCard().rank - card.rank == ctx->prevTopCard()->rank
-                             || ctx->prevTopCard()->rank - card.rank == ctx->topCard().rank
-                             || ctx->prevTopCard()->rank - ctx->topCard().rank == card.rank
-                             
                              || card.rank * ctx->topCard().rank == ctx->prevTopCard()->rank
                              || card.rank * ctx->prevTopCard()->rank == ctx->topCard().rank
-                             || ctx->topCard().rank * ctx->prevTopCard()->rank == card.rank
-                             
-                             || (card.rank / ctx->topCard().rank == ctx->prevTopCard()->rank && card.rank % ctx->topCard().rank == 0)
-                             || (card.rank / ctx->prevTopCard()->rank == ctx->topCard().rank && card.rank % ctx->prevTopCard()->rank == 0)
-                             || (ctx->topCard().rank / ctx->prevTopCard()->rank == card.rank && ctx->topCard().rank % ctx->prevTopCard()->rank == 0)
-                             || (ctx->topCard().rank / card.rank == ctx->prevTopCard()->rank && ctx->topCard().rank % card.rank == 0)
-                             || (ctx->prevTopCard()->rank / card.rank == ctx->topCard().rank && ctx->prevTopCard()->rank % card.rank == 0)
-                             || (ctx->prevTopCard()->rank / ctx->topCard().rank == card.rank && ctx->prevTopCard()->rank % ctx->topCard().rank == 0)))
+                             || ctx->topCard().rank * ctx->prevTopCard()->rank == card.rank))
                     requireMatch = false;
                 else if (card.rank == 1 && card.suit == SPADE_SUIT && (ctx->topCard().rank == 1 || ctx->topCard().rank >= 11))
                     requireMatch = false;
@@ -393,17 +373,6 @@ options_t propreantepenultimate_card(ccrContParam, int selectedOptionIdx, GameIn
                 ctx->pw = false;
             }
             goto step1; // go to step 1
-        } else if (ctx->selectedOption.type == OptionType::ReplaceHand) {
-            auto &hand = ctx->players[ctx->activePlayer];
-            auto handSize = hand.size();
-            for (auto i = 0; i < hand.size(); ++i) {
-                ctx->playedCards.push_back(hand[i]);
-            }
-            hand.clear();
-            for (auto i = 0; i < handSize; ++i) {
-                hand.push_back(ctx->drawCard(initSettings));
-            }
-            goto step1;
         }
         
         ctx->playCardFromHand(ctx->selectedOption.card);
