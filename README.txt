@@ -1,4 +1,4 @@
-True Propreantepenultimate Card Specification Version 3, Revision 4
+True Propreantepenultimate Card Specification Version 3, Revision 5
 -------------------------------------------------------------------
 
 §1              Game State:
@@ -17,14 +17,16 @@ True Propreantepenultimate Card Specification Version 3, Revision 4
 §1.7              - boolean ET (end turn)
                     (false)
 
-§2              Dealing:
-§2.1              Now the top card from the pile is placed on the table.
-§2.1              If that card has rank 2 or 5, set AV to that card’s rank.
-§2.2              If the rank is 10, set MV to 1.
-§2.3              If the rank is Jack, set MV to 1 and CW to false.
-§2.4              If the rank is Ace, the active player must
-                    choose a suit to which this card's suit changes.
-§2.5              Go to step 1.
+§2              Initial Setup:
+§2.1              After cards have been dealt to the players,
+                    the top card from the pile is placed on the table.
+§2.2              If that card:
+§2.2.1              Has rank 2 or 5: set AV to that card’s rank.
+§2.2.2              Has rank 10: set MV to 1.
+§2.2.3              Is a Jack: set MV to 1 and CW to false.
+§2.2.4              Is an Ace: the active player must choose a suit
+                      to which this card's suit changes.
+§2.6              Go to step 1 (§5).
 
 §3              Card Matches:
 §3.1              Any card C can only be played:
@@ -40,7 +42,7 @@ True Propreantepenultimate Card Specification Version 3, Revision 4
 §3.3              Requirement B is satisfied if:
 §3.3.1              -  Its rank is ±1 of the top or penultimate card’s rank,
                          wrapping at Ace
-§3.4              Requirements A and B are satisfied if:
+§3.4              Additionally, requirements A and B are both satisfied if:
 §3.4.1              -  Where T is the topmost or penultimate card:
 §3.4.1.1              -  If the rank of C is equal to the rank of T, or
 §3.4.1.2              -  If C is a Queen of Hearts and T is any King, or
@@ -124,4 +126,4 @@ True Propreantepenultimate Card Specification Version 3, Revision 4
                     before the active player last changed.
 §7.2              Any player who mispronounces "Propreantepenultimate Card"
                     or says "Last Card" must draw a card
-                    unless the majority of players disagree.
+                    unless the majority of players (>50%) disagree.
